@@ -1,0 +1,17 @@
+# 完整环境（含可选组件）
+# 安装：pip install -r requirements-full.txt
+-r requirements.txt
+
+# 1D CNN 模型（scripts/phase_c_rul.py 中的 DQCNN）
+torch>=2.2
+
+# 交互式小工具（src/app/app.py）
+streamlit>=1.30
+plotly>=5.18
+
+# 物理仿真（src/sim/，阶段 D / 候选清单 P2）
+# 注意：pybamm 依赖较新，建议用 Python 3.10-3.13 的独立环境安装
+pybamm>=24.1
+
+# 仅当需要读取 CALCE 的 xlsx 时使用（本项目未纳入该数据集）
+openpyxl>=3.1

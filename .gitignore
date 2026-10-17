@@ -1,0 +1,39 @@
+# ---------------- 数据（体积大，需自行下载） ----------------
+data/raw/
+data/processed/*
+# 只保留轻量的校验与统计记录，便于核对口径
+!data/processed/*.json
+!data/README.md
+
+# ---------------- 内部工作文档（不公开） ----------------
+docs/internal/
+
+# ---------------- Python ----------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+.python-version
+
+# ---------------- 缓存 / 系统 ----------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------- 报告大文件 ----------------
+reports/*.pdf
+reports/*.docx
+
+# ---------------- 本地环境 ----------------
+.env
+.env.local

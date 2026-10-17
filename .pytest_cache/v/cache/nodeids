@@ -1,0 +1,12 @@
+[
+  "tests/test_core.py::TestDqCurve::test_cross_cycle_is_late_minus_early",
+  "tests/test_core.py::TestDqCurve::test_flat_offset_gives_constant_gap",
+  "tests/test_core.py::TestDqCurve::test_hysteresis_gap_spans_both_endpoints",
+  "tests/test_core.py::TestDqCurve::test_insufficient_coverage_returns_nan",
+  "tests/test_core.py::TestDqCurve::test_paper_stats_depth_tracks_valley",
+  "tests/test_core.py::TestEcmIdentification::test_r0_fixed_variant_returns_full_vector",
+  "tests/test_core.py::TestEcmIdentification::test_recovers_known_parameters_without_noise",
+  "tests/test_core.py::TestEcmIdentification::test_robust_to_1mv_measurement_noise",
+  "tests/test_core.py::TestMetrics::test_median_ape_matches_reported_definition",
+  "tests/test_core.py::TestMetrics::test_perfect_prediction_gives_zero"
+]

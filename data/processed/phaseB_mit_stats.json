@@ -1,0 +1,31 @@
+{
+  "n_cells": 124,
+  "n_cycles_rows": 100501,
+  "split_counts": {
+    "test": 43,
+    "train": 41,
+    "secondary_test": 40
+  },
+  "batch_counts": {
+    "2": 43,
+    "1": 41,
+    "3": 40
+  },
+  "cycle_life_min": 148.0,
+  "cycle_life_median": 736.5,
+  "cycle_life_max": 2237.0,
+  "dq_shape": [
+    124,
+    100,
+    300
+  ],
+  "qd_shape": [
+    124,
+    100,
+    300
+  ],
+  "qd_all_nan_cycles": 1,
+  "dq_all_nan_cycles": 1,
+  "dq_missing_cycles": 0,
+  "elapsed_s": 46.2
+}

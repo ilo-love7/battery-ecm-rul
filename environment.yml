@@ -1,0 +1,20 @@
+# Conda 环境（可选；也可直接 pip install -r requirements.txt）
+name: battery-ecm-rul
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy>=1.26
+  - pandas>=2.0
+  - scipy>=1.11
+  - matplotlib>=3.7
+  - h5py>=3.10
+  - pyarrow>=15.0
+  - scikit-learn>=1.4
+  - jupyter
+  - pip
+  - pip:
+      # 可选：1D CNN 与交互式小工具
+      - torch>=2.2
+      - streamlit>=1.30
+      - plotly>=5.18

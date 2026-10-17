@@ -1,0 +1,61 @@
+cff-version: 1.2.0
+message: "If you use this code or the results in your work, please cite it as below."
+title: "Battery ECM Parameter Identification and Early Cycle-Life Prediction"
+abstract: >-
+  Reproducible implementation of Thevenin equivalent-circuit model identification
+  on the NASA PCoE battery dataset and early cycle-life (RUL) prediction from the
+  first 100 cycles on the MIT-Stanford dataset, following the Severson et al. (2019)
+  protocol.
+type: software
+authors:
+  # 如需补充 orcid / affiliation，直接在下面加字段
+  - name: "ilo"
+version: 1.0.0
+date-released: 2026-10-17
+license: MIT
+repository-code: "https://github.com/ilo-love7/battery-ecm-rul"
+url: "https://github.com/ilo-love7/battery-ecm-rul"
+keywords:
+  - lithium-ion battery
+  - state of health
+  - remaining useful life
+  - equivalent circuit model
+  - machine learning
+references:
+  - type: article
+    title: "Data-driven prediction of battery cycle life before capacity degradation"
+    authors:
+      - family-names: Severson
+        given-names: K. A.
+      - family-names: Attia
+        given-names: P. M.
+      - family-names: Jin
+        given-names: N.
+      - family-names: Perkins
+        given-names: N.
+      - family-names: Jiang
+        given-names: B.
+      - family-names: Yang
+        given-names: Z.
+      - family-names: Chen
+        given-names: M. H.
+      - family-names: Aykol
+        given-names: M.
+      - family-names: Herring
+        given-names: P. K.
+      - family-names: Fraggedakis
+        given-names: D.
+      - family-names: McDowell
+        given-names: M.
+      - family-names: Chueh
+        given-names: W. C.
+      - family-names: Braatz
+        given-names: R. D.
+      - family-names: Bazant
+        given-names: M. Z.
+    journal: Nature Energy
+    volume: 4
+    start: 383
+    end: 391
+    year: 2019
+    doi: 10.1038/s41560-019-0352-4

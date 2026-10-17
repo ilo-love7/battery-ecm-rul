@@ -1,0 +1,13 @@
+# 锂电池 ECM 建模 + RUL 寿命预测 —— 核心依赖
+# Python >= 3.10
+numpy>=1.26
+pandas>=2.0
+scipy>=1.11
+matplotlib>=3.7
+
+# 数据解析（MIT-Stanford 为 MATLAB v7.3 / HDF5，必须 h5py）
+h5py>=3.10
+pyarrow>=15.0        # Parquet 读写
+
+# 建模
+scikit-learn>=1.4

@@ -1,0 +1,184 @@
+{
+  "mode_corr": {
+    "LLI": 0.6425865383482041,
+    "LAM_pos": -0.06610142246375307,
+    "LAM_neg": 0.5805041901022443
+  },
+  "protocol_spread": {
+    "within_policy": 0.33137622619734564,
+    "overall": 2.6059173264388398,
+    "sim_spread_sei": 0.08016090168675465,
+    "sim_spread_plating": 0.04847707724335498
+  },
+  "augment": [
+    {
+      "arm": "P1 基线（论文 6 特征）",
+      "model": "ElasticNet",
+      "eval_set": "test",
+      "n_features": 6,
+      "alpha": 0.003,
+      "median_ape": 8.328364290716571,
+      "mean_ape": 23.281950888217082,
+      "rmse": 241.0786913641787,
+      "r2": 0.6201834379929063,
+      "max_ape": 572.3416873617605,
+      "n": 43
+    },
+    {
+      "arm": "P1 基线（论文 6 特征）",
+      "model": "ElasticNet",
+      "eval_set": "secondary",
+      "n_features": 6,
+      "alpha": 0.003,
+      "median_ape": 6.308391544692397,
+      "mean_ape": 8.856548328725223,
+      "rmse": 173.9326534701377,
+      "r2": 0.6741855956683501,
+      "max_ape": 36.759306555380576,
+      "n": 40
+    },
+    {
+      "arm": "P1 基线（论文 6 特征）",
+      "model": "GradientBoosting",
+      "eval_set": "test",
+      "n_features": 6,
+      "alpha": 0.003,
+      "median_ape": 8.578461200344817,
+      "mean_ape": 11.697843924164147,
+      "rmse": 106.2944761252212,
+      "r2": 0.9261623885567645,
+      "max_ape": 109.11793918697848,
+      "n": 43
+    },
+    {
+      "arm": "P1 基线（论文 6 特征）",
+      "model": "GradientBoosting",
+      "eval_set": "secondary",
+      "n_features": 6,
+      "alpha": 0.003,
+      "median_ape": 8.029864713995162,
+      "mean_ape": 12.007658040679562,
+      "rmse": 193.5730782700787,
+      "r2": 0.5964494453714426,
+      "max_ape": 40.19431208833288,
+      "n": 40
+    },
+    {
+      "arm": "P1 + 仿真模式系数",
+      "model": "ElasticNet",
+      "eval_set": "test",
+      "n_features": 9,
+      "alpha": 0.003,
+      "median_ape": 8.41061848772364,
+      "mean_ape": 21.6049924650836,
+      "rmse": 237.2031226556032,
+      "r2": 0.6322971029082638,
+      "max_ape": 474.6812274225524,
+      "n": 43
+    },
+    {
+      "arm": "P1 + 仿真模式系数",
+      "model": "ElasticNet",
+      "eval_set": "secondary",
+      "n_features": 9,
+      "alpha": 0.003,
+      "median_ape": 6.687565690834763,
+      "mean_ape": 9.3917299976904,
+      "rmse": 169.8318330871879,
+      "r2": 0.6893679733882904,
+      "max_ape": 35.953382672226276,
+      "n": 40
+    },
+    {
+      "arm": "P1 + 仿真模式系数",
+      "model": "GradientBoosting",
+      "eval_set": "test",
+      "n_features": 9,
+      "alpha": 0.003,
+      "median_ape": 9.632413382503485,
+      "mean_ape": 12.463145262001056,
+      "rmse": 104.97970439284529,
+      "r2": 0.9279777078847845,
+      "max_ape": 114.61160910002799,
+      "n": 43
+    },
+    {
+      "arm": "P1 + 仿真模式系数",
+      "model": "GradientBoosting",
+      "eval_set": "secondary",
+      "n_features": 9,
+      "alpha": 0.003,
+      "median_ape": 8.313507942488842,
+      "mean_ape": 12.130389596478972,
+      "rmse": 216.5620410627288,
+      "r2": 0.4949054208302657,
+      "max_ape": 42.4593883897825,
+      "n": 40
+    },
+    {
+      "arm": "仅仿真模式系数",
+      "model": "ElasticNet",
+      "eval_set": "test",
+      "n_features": 3,
+      "alpha": 0.1,
+      "median_ape": 23.02344339435552,
+      "mean_ape": 24.12156706837984,
+      "rmse": 339.6902398642095,
+      "r2": 0.24591138314057182,
+      "max_ape": 61.23781001239982,
+      "n": 43
+    },
+    {
+      "arm": "仅仿真模式系数",
+      "model": "ElasticNet",
+      "eval_set": "secondary",
+      "n_features": 3,
+      "alpha": 0.1,
+      "median_ape": 43.1265566447922,
+      "mean_ape": 46.6537895898125,
+      "rmse": 653.4256421794537,
+      "r2": -3.598332616505181,
+      "max_ape": 93.86303813541343,
+      "n": 40
+    },
+    {
+      "arm": "仅仿真模式系数",
+      "model": "GradientBoosting",
+      "eval_set": "test",
+      "n_features": 3,
+      "alpha": 0.1,
+      "median_ape": 19.813862251659558,
+      "mean_ape": 28.331287689895124,
+      "rmse": 334.19702054952296,
+      "r2": 0.2701033084149014,
+      "max_ape": 205.84135321387768,
+      "n": 43
+    },
+    {
+      "arm": "仅仿真模式系数",
+      "model": "GradientBoosting",
+      "eval_set": "secondary",
+      "n_features": 3,
+      "alpha": 0.1,
+      "median_ape": 34.43065028211102,
+      "mean_ape": 37.352969240181736,
+      "rmse": 545.6413405325185,
+      "r2": -2.206435957574744,
+      "max_ape": 76.60748306167757,
+      "n": 40
+    }
+  ],
+  "mode_spearman": {
+    "llI_spearman": -0.2436607972102961,
+    "modes": [
+      "LLI",
+      "LAM_pos",
+      "LAM_neg"
+    ],
+    "share_std": {
+      "LLI": 0.017608935745821758,
+      "LAM_pos": 0.011188377903271741,
+      "LAM_neg": 0.027414116333671815
+    }
+  }
+}
