@@ -16,6 +16,8 @@
 
 </div>
 
+![项目总览：一条互相校验的证据链](figures/project_overview.png)
+
 ---
 
 ## 结果速览
@@ -413,7 +415,6 @@ streamlit run src/app/app.py
 │   ├── sim.md            物理仿真：谱系、快充、ΔQ 归因、负结果
 │   ├── audit.md          P3 审计 + 三线合并：能被测量 ≠ 能被辨识
 │   └── sibling_projects.md  与 battery-lifetime-guide 的分工、口径对照与合并代价
-├── 需求与计划/           候选项目清单、执行计划、数据核查报告（需求侧文档）
 ├── 交付物/               Word 项目总结报告 + 离线 HTML 数据看板
 ├── data/                 数据目录约定（原始数据不入库）
 ├── figures/              结果图（README.md 为图库索引）

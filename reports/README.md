@@ -12,7 +12,6 @@
 | `phaseC_predictions.csv` | 每颗电池 5 个模型的预测值 | `phase_c_rul.py` |
 | `phaseC_learning_curve.csv` | 训练电池数 10→41 的学习曲线 | `phase_c_rul.py` |
 | `phaseC_results.json` | 上述指标的汇总快照（含特征数、ElasticNet alpha） | `phase_c_rul.py` |
-| `phaseC_summary.md` | RUL 方法与结果小结 | 手写 |
 
 ## 快速查看
 

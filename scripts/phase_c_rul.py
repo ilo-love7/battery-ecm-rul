@@ -14,7 +14,6 @@
 产物：
 - reports/phaseC_metrics.csv / phaseC_predictions.csv
 - figures/fig_c_*.png
-- reports/phaseC_summary.md
 """
 from __future__ import annotations
 

@@ -4,6 +4,8 @@
 
 命名规则：`fig_<阶段>_<内容>.png`，阶段编号与 `scripts/` 前缀一致。
 
+例外：`project_overview.png` 是项目总览图（不按阶段命名），由 `scripts/make_overview.py` 生成，用于 README 与 LEARN.md 头部，展示「数据 → P1 数据线 / P2 物理仿真标尺 / P3 审计线」的三层证据链。
+
 | 前缀 | 阶段 | 脚本 |
 |---|---|---|
 | `a0` | 数据解析验证 | `validate_nasa.py` |
@@ -80,7 +82,6 @@
 | `README.md` | `fig_a2_fit_B0005`、`fig_c_02_dq_aging`、`fig_c_03_model_compare`、`fig_c_04_pred_scatter`、`fig_c_08_ablation`、`fig_d_01`、`fig_d_03`、`fig_d_04`、`fig_e_03`、`fig_f_01`、`fig_f_02` |
 | `docs/results.md` | `fig_a2_fit_B0005`、`fig_a2_r_aging`、`fig_c_01`～`fig_c_08` |
 | `docs/method.md` | 无（纯方法说明） |
-| `reports/phaseC_summary.md` | 无（数字表为主） |
 | `docs/sim.md` | `fig_d_01`～`fig_d_06` |
 | `docs/audit.md` | `fig_e_01`～`fig_e_03`、`fig_f_01`～`fig_f_02` |
 | `交付物/数据看板.html` | 由 `scripts/build_dashboard.py` 内嵌，不依赖本目录 |

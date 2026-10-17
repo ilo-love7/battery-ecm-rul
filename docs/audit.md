@@ -10,7 +10,7 @@
 > 代码：`scripts/phase_e_p3_audit.py`、`scripts/phase_f_bridge.py`
 > 产物：`figures/fig_e_01`–`fig_e_03`、`figures/fig_f_01`–`fig_f_02`、
 > `reports/phaseE_*.csv`、`reports/phaseF_*.csv`
-> P3 原件解压于 `C:\Users\34648\Desktop\_p3_inspect\`（不随仓库分发）
+> P3 原件为第三方交付物，不随仓库分发，本地临时解压后已完成审计留档
 
 ---
 
