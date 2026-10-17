@@ -9,3 +9,8 @@
 *.parquet binary
 *.npz binary
 *.pdf binary
+
+# 数据看板是 scripts/build_dashboard.py 自动生成的构建产物（全部图表数据内联，
+# 单文件 1.5 MB）。标记为 generated：GitHub 语言统计跳过它，
+# 否则语言栏会被这一个文件带偏（字节占比 85%，全是内联数据而非手写代码）。
+交付物/*.html linguist-generated=true
