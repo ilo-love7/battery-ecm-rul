@@ -16,8 +16,6 @@
 
 </div>
 
-![项目总览：一条互相校验的证据链](figures/project_overview.png)
-
 ---
 
 ## 结果速览

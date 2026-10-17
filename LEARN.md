@@ -2,8 +2,6 @@
 
 > **English summary:** I built a three-layer evidence chain on two public battery datasets (NASA PCoE, MIT–Stanford). Layer 1 identifies a Thevenin equivalent-circuit model on NASA cells (median **1.61%** voltage-retest RMSE) and predicts cycle life from the first 100 cycles on 124 MIT cells (**6.20%** median error, R²=0.93). Layer 2 uses PyBaMM to inject known degradation modes, attributing ΔQ(V) to lithium inventory loss (r=+0.64) and negative-electrode active-material loss (r=+0.58). Layer 3 audits an independent ECM-identification pipeline and shows its three core quantities are **structurally unidentifiable** — using the simulation's ground truth as a ruler, **63%** of its reported ohmic resistance is an 18.7 s sampling artifact. The chain's conclusion is one sentence: **measurable ≠ identifiable**.
 
-![项目总览：一条互相校验的证据链](figures/project_overview.png)
-
 ## 这个项目做了什么
 
 从公开的电池充放电数据出发，回答两个问题：**电池为什么变差**，以及**还能跑多久**。但项目真正的内容是第三条线——用物理仿真当标尺，去检验一条别人写的辨识链到底站不站得住。

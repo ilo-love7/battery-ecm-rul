@@ -4,8 +4,6 @@
 
 命名规则：`fig_<阶段>_<内容>.png`，阶段编号与 `scripts/` 前缀一致。
 
-例外：`project_overview.png` 是项目总览图（不按阶段命名），由 `scripts/make_overview.py` 生成，用于 README 与 LEARN.md 头部，展示「数据 → P1 数据线 / P2 物理仿真标尺 / P3 审计线」的三层证据链。
-
 | 前缀 | 阶段 | 脚本 |
 |---|---|---|
 | `a0` | 数据解析验证 | `validate_nasa.py` |
