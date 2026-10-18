@@ -1,0 +1,7 @@
+﻿test_batch,train_batches,n_test,config,alpha,l1_ratio,median_ape,mean_ape,p90_ape,max_ape,ci95_lo,ci95_hi,ks_top_feature,ks_top_D,n_features_p05
+batch1,batch2+batch3,41,OLD_fixed_l1_0.5,0.003,0.5,14.6,17.08,22.39,145.69,10.77,17.25,intercept,0.587,4
+batch1,batch2+batch3,41,NEW_grid_search,0.003,0.1,14.32,16.53,22.98,123.7,9.13,17.29,intercept,0.587,4
+batch2,batch1+batch3,43,OLD_fixed_l1_0.5,0.003,0.5,24.37,26.47,39.46,116.95,19.82,29.01,log_var,0.767,6
+batch2,batch1+batch3,43,NEW_grid_search,0.003,0.5,24.37,26.47,39.46,116.95,19.82,29.01,log_var,0.767,6
+batch3,batch1+batch2,40,OLD_fixed_l1_0.5,0.003,0.5,12.9,13.41,27.45,43.61,6.9,15.09,intercept,0.732,6
+batch3,batch1+batch2,40,NEW_grid_search,0.01,0.1,13.16,13.94,28.42,44.11,7.12,15.97,intercept,0.732,6

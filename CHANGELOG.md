@@ -34,6 +34,7 @@
   （p=0.006）、CNN 断崖失败显著（p=1.8e-07）、batch3 上 RF 显著优于 GBM（p=0.0012）；
   EN l1_ratio 改进主测试上不显著（p=0.92）。
 - `docs/results.md` 新增 2.6 节记录上述显著性分析；`README.md` 主协议表下补统计口径提示。
+- 新增 `scripts/lobo_analysis.py` + `reports/lobo_folds.csv`：三折纯批次 LOBO（每折独立内层调参）× 两模型版本 + 每折 6 特征 KS 漂移检验（严谨 §2.1/§4）。核心发现：batch2 折最难（中位 24.4%，全部 6 特征分布显著偏移，log_var D=0.77）且与 b1 折 CI 不重叠——跨批次难度差异是统计事实；b2 折新配置自己选回 l1_ratio=0.5，l1_ratio 在三折上没有一次超过 0.3 pp 的影响；与 guide 轮换表方向一致（b2 最难）但幅度不同（特征/标签版本差异）。写入 results.md 2.7。
 
 ---
 
