@@ -133,7 +133,8 @@ $$V_t = \mathrm{OCV}(\mathrm{SOC}) - I\,R_0 - I\,R_1\left(1 - e^{-t/\tau_1}\righ
 
 ![预测散点](figures/fig_c_04_pred_scatter.png)
 
-> **统计口径提示（[docs/results.md](docs/results.md) 2.6）**：n=43 的样本量下，上表前四名模型的差距大多不具统计显著性——GBM 6.20% 对 EN 7.77% 的 Wilcoxon 配对检验 p=0.93， bootstrap 95% CI 宽达 5–9 个百分点。排名是描述性的；只有 RandomForest 显著劣于 GBM（p=0.006）、1D CNN 断崖式失败（p=1.8e-07）、二级测试上 RF 显著优于 GBM（p=0.0012）这三条是推断性结论。
+> **统计口径提示（[docs/results.md](docs/results.md) 2.6）**：n=43 的样本量下，上表前四名模型的差距大多不具统计显著性——GBM 6.20% 对 EN 7.77% 的 Wilcoxon 配对检验 p=0.93，bootstrap 95% CI 宽达 5–9 个百分点。排名是描述性的；只有 RandomForest 显著劣于 GBM（p=0.006）、1D CNN 断崖式失败（p=1.8e-07）、二级测试上 RF 显著优于 GBM（p=0.0012）这三条是推断性结论。
+
 **特征口径消融：6 维 vs 60 维**
 
 同一划分、同一模型，只换特征集：
