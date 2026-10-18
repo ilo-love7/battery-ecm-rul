@@ -27,6 +27,13 @@
   （l1_ratio 是小项、特征管线是主项、测试集成员已核对一致）。
 - `scripts/phase_c_rul.py`：`tune_elasticnet()` 的文档字符串同步修正，注明其方法论正确但
   不是跨仓差距的解释（2026-10-18）。
+- 新增 `scripts/stats_significance.py`：对已有逐颗预测补统计口径——bootstrap 1000 次
+  95% CI + Wilcoxon 配对检验（判定：p<0.05 且中位差距 ≥1 pp 为显著）。产物
+  `reports/phaseC_significance.csv`（21 行）。核心发现：n=43 下 GBM 6.20% vs EN 7.77%
+  **不显著**（p=0.93，CI 宽 5–9 pp），此前模型排名只是描述性的；RF 显著劣于 GBM
+  （p=0.006）、CNN 断崖失败显著（p=1.8e-07）、batch3 上 RF 显著优于 GBM（p=0.0012）；
+  EN l1_ratio 改进主测试上不显著（p=0.92）。
+- `docs/results.md` 新增 2.6 节记录上述显著性分析；`README.md` 主协议表下补统计口径提示。
 
 ---
 
