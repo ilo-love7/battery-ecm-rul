@@ -7,21 +7,26 @@
 
 ### 已知分歧与待办
 
-- **ElasticNet 六特征与另一份独立复现（battery-lifetime-guide）差 41%**（本仓 8.33% vs 对方 5.9%）。
-  已定位：`tune_elasticnet()` 早期只搜 alpha、`l1_ratio` 固定 0.5，对方用
-  `ElasticNetCV(l1_ratio=[0.1, 0.5, 0.9, 1.0])` 把 l1_ratio 也交给 CV。六特征是稀疏信号，
-  `l1_ratio → 1`（纯 Lasso）才做得了特征选择。
-  **代码已改为同时搜 alpha 与 l1_ratio，但结果尚未重跑验证**（缺 `data/raw/mit/` 8.3 GB），
-  文档表格中的 8.33% / 6.31% 仍是旧值。
-- 随机森林在主测试上**完全一致**（8.12% vs 8.2%），可作数据口径对齐的硬证据。
+- **ElasticNet 六特征与另一份独立复现（battery-lifetime-guide）差 2.4 pp**（本仓存档 8.33% vs 对方 5.9%）。
+  **2026-10-18 受控实验（`scripts/verify_en_l1ratio.py`）已修正早期归因**：早期认为差距全在
+  `l1_ratio` 是否参与搜索，实验证明那只是小项——同一份特征快照上固定 0.5 与网格搜索只差
+  0.14 pp（6.18% → 6.04%）。**差距主因是两条管线的 paper6 特征数值定义差异**：同一旧配置换特征来源
+  即从 6.18% 跳到 8.33%，且误差结构完全不同（mean 34.8% / R² −12.9 vs 23.3% / 0.62）。
+  全量重跑（缺 `data/raw/mit/` 8.3 GB）预期落在 ~6.2% 一线；剩余差距需特征级 diff 定位。
+- 两仓主测试 43 颗成员已核对**完全相同**（官方 test_ind 混合划分逐颗对上），寿命标签仅 3 颗
+  续跑电池差 1 圈（可忽略）；「RF 8.12% vs 8.2% 完全一致」是不同特征集的巧合接近，
+  同口径有效对照为 9.38%（本仓 paper6 RF）vs 8.2%，同样差约 1.2 pp，与 EN 同向。
+- 新增 `scripts/verify_en_l1ratio.py`：跨仓受控实验（本仓 124 颗名单与 split × guide 六特征快照，
+  三配置 × 两测试集），产物 `reports/en_l1ratio_verification.csv`、`reports/en_l1ratio_predictions.csv`。
 - 新增 `docs/sibling_projects.md`：两仓分工、口径对照与合并代价。
 
 ### 变更
 
-- `scripts/phase_c_rul.py`：`tune_elasticnet()` 增加 `l1_ratios` 搜索维度，返回值改为
-  `(alpha, l1_ratio, score)`；预测闭包、消融、CV、结果 JSON 同步记录 `l1_ratio`。
-- `docs/results.md` 第 2.2 节：把原「差异来自超参粒度与 EOL 标签细节」的归因修正为
-  「RF 可证口径一致，差距在 l1_ratio 搜索空间」，并显式标注旧数字未重跑。
+- `docs/results.md` 第 2.2 节、`docs/sibling_projects.md` 第二节、`README.md` 兄弟仓库段：
+  把「差距全在 l1_ratio 搜索空间」「RF 一致证明四条链都对」的旧归因，替换为受控实验的三段式结论
+  （l1_ratio 是小项、特征管线是主项、测试集成员已核对一致）。
+- `scripts/phase_c_rul.py`：`tune_elasticnet()` 的文档字符串同步修正，注明其方法论正确但
+  不是跨仓差距的解释（2026-10-18）。
 
 ---
 

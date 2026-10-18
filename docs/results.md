@@ -103,16 +103,32 @@
 
 作为外部参照，同一数据集、同样论文 6 特征的另一份独立复现（[battery-lifetime-guide](https://github.com/ilo-love7/battery-lifetime-guide)）报 EN 5.9% / batch3 4.9%。本项目 8.33% / 6.31%，同量级、同趋势（跨批次不退化）。
 
-**这个差距的来源已经定位，不在数据口径。** 逐颗对齐两份复现的预测表后发现：随机森林在主测试上**完全一致**（本项目 8.12%，对方 8.2%）。RF 不调超参就能对齐，说明 124 颗筛选、官方划分、寿命标签、ΔQ 特征四条链都是对的。差距只出现在 ElasticNet 上，原因是超参搜索空间不同——本项目早期版本 `tune_elasticnet()` 只搜 alpha、**l1_ratio 固定 0.5**；对方用 `ElasticNetCV(l1_ratio=[0.1, 0.5, 0.9, 1.0])`，即把 l1_ratio 也交给 CV。论文六特征是稀疏信号，l1_ratio → 1（纯 Lasso）才做得了特征选择，固定 0.5 的弹性折中天然吃亏。
+**差距的归因已经用受控实验验证，且推翻了早期的单一解释。** 早期记录（提交 619bbe8）认为差距「全在超参搜索空间」——本仓早期 `tune_elasticnet()` 固定 `l1_ratio=0.5`，而 guide 用 `ElasticNetCV(l1_ratio=[0.1, 0.5, 0.9, 1.0])`。这个解释只对了一小部分。`scripts/verify_en_l1ratio.py` 在**同一份特征快照**上把三个配置各跑一遍（训练 41 → 测试 43，其余全部固定）：
 
-代码已改为同时搜 alpha 与 l1_ratio（见 `scripts/phase_c_rul.py` 的 `tune_elasticnet()`），但**本节表格中的 8.33% / 6.31% 仍是 l1_ratio=0.5 时代的旧结果，尚未重跑验证**。重跑需要 MIT-Stanford 原始数据（`data/raw/mit/`，8.3 GB）：
+| 配置 | 特征来源 | 主测试中位 | batch3 中位 |
+|---|---|---|---|
+| 旧配置（l1_ratio 固定 0.5） | guide 特征快照 | 6.18% | 5.03% |
+| 新配置（alpha × l1_ratio 网格） | guide 特征快照 | **6.04%** | **4.80%** |
+| guide 原配方复刻 | guide 特征快照 | 6.22% | 4.80% |
+| 旧配置（l1_ratio 固定 0.5） | **本仓自己的 paper6 管线**（存档值） | 8.33% | 6.31% |
+
+三个教训：
+
+1. **l1_ratio 搜索的收益是真的，但很小**：主测试 −0.14 pp、batch3 −0.23 pp，方向与 guide 一致，但它解释不了 2.4 pp 的跨仓差距。
+2. **差距的主因在特征管线，不在超参**：同一旧配置换特征来源，主测试从 6.18% 跳到 8.33%，且误差结构完全不同——存档的 paper6 EN 是 mean 23.3% / R² 0.62，guide 特征上是 mean 34.8% / R² −12.9（同样的 43 颗 cell）。两条管线的 paper6 特征**数值定义有差异**（电压分箱、插值、周期选取的细节），这是下一个要拆的问题。
+3. **早期的「RF 完全一致所以四条链都对」是无效对照**：8.12% 是本仓 60 维 RF，8.2% 是 guide 的 6 维 RF，特征集不同。同特征口径的有效对照是 9.38%（本仓 paper6 RF，见 `reports/phaseC_ablation.csv`）对 8.2%，同样差约 1.2 pp——与 EN 的差距同向，共同指向特征管线。
+
+已核对的确定性事实：两仓的**主测试 43 颗成员完全相同**（官方 test_ind 混合划分，逐颗对上）；寿命标签仅 3 颗续跑电池差 1 圈（第 1 圈计数口径），可忽略；guide 原配方复刻给出 6.22%（guide 自报 5.90%），残差 0.3 pp 来自训练集标签的新旧版本差异。
+
+代码侧 `tune_elasticnet()` 已改为同时搜 alpha 与 l1_ratio（方法论正确，保留）；但**本节表格中的 8.33% / 6.31% 不会因该修复跳到 5.9%**——全量重跑（需要 MIT-Stanford 原始数据 `data/raw/mit/`，8.3 GB）的预期是落到 ~6.2% 一线，剩下的跨仓差距要做特征级 diff 才能定位。复现命令与产物：
 
 ```bash
-python scripts/phase_c_rul.py     # 会打印 paper6 选中的 alpha 与 l1_ratio
-python -c "import pandas as pd; print(pd.read_csv('reports/phaseC_ablation.csv'))"
+python scripts/verify_en_l1ratio.py   # 受控实验：三配置 × 两测试集
+# 产物：reports/en_l1ratio_verification.csv、reports/en_l1ratio_predictions.csv
+python scripts/phase_c_rul.py         # 全量重跑（需原始数据就位）
 ```
 
-预期 EN 六特征会向 5.9% 靠拢；若靠拢不了，则差异另有来源，应回来修订本节。两仓的分工与完整口径对照见 [`sibling_projects.md`](sibling_projects.md)。
+两仓的分工与完整口径对照见 [`sibling_projects.md`](sibling_projects.md)。
 
 ### 2.3 补充协议：全量 124 颗 5 折交叉验证
 

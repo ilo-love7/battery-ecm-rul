@@ -454,8 +454,8 @@ streamlit run src/app/app.py
 本仓库形态是**自洽的证据链**（ECM 辨识 + PyBaMM 仿真 + 第三方辨识审计）。两者**有意保持为两个仓库**，
 分工、口径对照与「为什么不合并」见 [docs/sibling_projects.md](docs/sibling_projects.md)。
 
-> 两边的随机森林在主测试上完全一致（8.12% vs 8.2%），可作口径对齐的硬证据；
-> ElasticNet 的差距（8.33% vs 5.9%）已定位到 l1_ratio 是否参与超参搜索，代码已改、待重跑。
+> 两边的随机森林在 60 维口径下接近（8.12% vs 8.2%）；ElasticNet 的差距（8.33% vs 5.9%）已经受控实验分解：
+> l1_ratio 是否参与搜索只值 0.14 pp，主因是两条管线的 paper6 特征数值定义差异——详见 docs/results.md 2.2。
 
 ## License
 

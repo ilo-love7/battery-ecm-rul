@@ -81,11 +81,14 @@ def tune_elasticnet(X, y, alphas=(0.003, 0.01, 0.03, 0.1, 0.3, 1.0),
     """在训练集内部做 5 折 CV 同时选 alpha 与 l1_ratio（不外泄测试集）。
 
     l1_ratio 必须一起搜：固定 0.5 时 EN 只是岭回归与 Lasso 的折中，而论文六特征
-    是稀疏信号，l1_ratio→1（纯 Lasso）才能做特征选择。另一份独立复现
-    （battery-lifetime-guide）用 `ElasticNetCV(l1_ratio=[0.1, 0.5, 0.9, 1.0])`，
-    同划分下 EN 六特征 5.9%；本项目早期版本固定 l1_ratio=0.5，同配置为 8.33%，
-    而两者的随机森林完全一致（8.12% vs 8.2%）——证明数据口径与标签都对，
-    差距全在超参搜索空间。详见 docs/results.md 第六节。
+    是稀疏信号，l1_ratio→1（纯 Lasso）才能做特征选择。
+
+    注意（2026-10-18 受控实验结论，见 scripts/verify_en_l1ratio.py 与
+    docs/results.md 2.2）：跨仓差距（本仓存档 8.33% vs battery-lifetime-guide
+    5.9%）**主要不是** l1_ratio 造成的。在同一份特征快照上，固定 0.5 与网格搜索
+    只差 0.14 pp（6.18% → 6.04%）；换用本仓自己的 paper6 特征管线，同一旧配置
+    就是 8.33%——主因是两条管线的特征数值定义差异。本函数的方法论仍然正确
+    （保留），但不要把它当作跨仓差距的解释。
     """
     best, best_score = None, np.inf
     kf = KFold(n_splits=5, shuffle=True, random_state=SEED)
