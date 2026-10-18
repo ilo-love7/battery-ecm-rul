@@ -46,8 +46,8 @@
   寿命标签仅 3 颗续跑电池差 1 圈，可忽略。
 
 `tune_elasticnet()` 已改为同时搜 alpha 与 l1_ratio（方法论正确，保留），但**不要期待重跑后 EN 跳到 5.9%**——
-预期落在 ~6.2% 一线；剩下的跨仓差距需要一次特征级 diff（电压分箱 / 插值 / 周期选取）才能定位，
-该实验需要 `data/raw/mit/` 的 8.3 GB 原始数据就位。
+预期落在 ~6.2% 一线；剩下的跨仓差距需要一次特征级 diff（电压分箱 / 插值 / 周期选取）才能定位。
+该实验数据已就绪：8.27 GB 已落在 `D:\项目\02_数据集\01_国际公开集\MIT_MATR-1\原始数据\`，仓库内 `data/raw/mit` 是该路径的 Windows junction。
 
 > 结论的写法要克制：**EN 的差距已有受控实验的部分定位（超参是小项、特征管线是主项），
 > 但尚未做特征级 diff。** 在特征 diff 完成前，不宣称「本仓库与 guide 的 EN 结果可以互相印证」，
@@ -88,8 +88,8 @@ battery-lifetime-research/           # 索引仓，不放实现代码
 
 ## 五、待办
 
-| 事项 | 前置条件 |
-|---|---|
-| 重跑 `phase_c_rul.py`，把 EN 六特征从 8.33% 更新到新值 | 下载 MIT-Stanford 8.3 GB 到 `data/raw/mit/` |
-| 若 EN 未向 5.9% 靠拢，回来修订 `docs/results.md` 第 2.2 节的归因 | 同上 |
-| guide 侧加 `RELATED.md` 指向本仓库的三条结论 | 无 |
+| 事项 | 前置条件 | 状态（2026-10-18） |
+|---|---|---|
+| 重跑 `phase_c_rul.py`，把 EN 六特征从 8.33% 更新到新值 | MIT-Stanford 8.3 GB 落到 `data/raw/mit/` | **数据已就绪**：8.27 GB（7.7 GiB）已落在 `D:\项目\02_数据集\01_国际公开集\MIT_MATR-1\原始数据\`。仓库内 `data/raw/mit` 是该路径的 Windows junction；或运行 `MIT_DIR=D:\项目\02_数据集\01_国际公开集\MIT_MATR-1\原始数据 python scripts/phase_b_build_dataset.py mit` |
+| 若 EN 未向 5.9% 靠拢，回来修订 `docs/results.md` 第 2.2 节的归因 | 同上 | 数据已就绪；重跑后看结果再决定 |
+| guide 侧加 `RELATED.md` 指向本仓库的三条结论 | 无 | **已完成**：`battery-lifetime-guide/RELATED.md` 已存在并引用本仓库的三条结论（RF「一致」是巧合接近的修正、ECM 内阻采样伪影占 63%、PyBaMM ΔQ 机制归因） |
