@@ -1,0 +1,135 @@
+{
+  "signal_std_Ah": 0.385380357503891,
+  "window": [
+    {
+      "ElasticNet_test": 6.512171445782154,
+      "ElasticNet_secondary": 48.625079351403485,
+      "RandomForest_test": 12.171401152409917,
+      "RandomForest_secondary": 34.44308796758593,
+      "GradientBoosting_test": 7.851308299991295,
+      "GradientBoosting_secondary": 36.3038999412514,
+      "en_alpha": 0.01,
+      "en_l1_ratio": 0.9,
+      "n_window": 20,
+      "n_features": 57,
+      "xq_available": 0
+    },
+    {
+      "ElasticNet_test": 7.824221197736146,
+      "ElasticNet_secondary": 41.486487434646826,
+      "RandomForest_test": 10.196095574190188,
+      "RandomForest_secondary": 19.23184712718432,
+      "GradientBoosting_test": 7.400823383579766,
+      "GradientBoosting_secondary": 26.281973384245127,
+      "en_alpha": 0.01,
+      "en_l1_ratio": 0.5,
+      "n_window": 50,
+      "n_features": 57,
+      "xq_available": 0
+    },
+    {
+      "ElasticNet_test": 8.11778305331085,
+      "ElasticNet_secondary": 32.19431548342699,
+      "RandomForest_test": 9.572133721089594,
+      "RandomForest_secondary": 11.748159109014393,
+      "GradientBoosting_test": 8.516696944501918,
+      "GradientBoosting_secondary": 21.775684491647056,
+      "en_alpha": 0.01,
+      "en_l1_ratio": 1.0,
+      "n_window": 80,
+      "n_features": 57,
+      "xq_available": 0
+    },
+    {
+      "ElasticNet_test": 7.773730317338315,
+      "ElasticNet_secondary": 28.635550393849346,
+      "RandomForest_test": 8.11884294525749,
+      "RandomForest_secondary": 11.88911989607255,
+      "GradientBoosting_test": 6.203409236759128,
+      "GradientBoosting_secondary": 16.365476680972357,
+      "en_alpha": 0.01,
+      "en_l1_ratio": 0.5,
+      "n_window": 100,
+      "n_features": 60,
+      "xq_available": 1
+    }
+  ],
+  "noise": [
+    {
+      "ElasticNet_test": 7.773730317338315,
+      "ElasticNet_secondary": 28.635550393849346,
+      "RandomForest_test": 8.118842945257407,
+      "RandomForest_secondary": 11.889119896072586,
+      "GradientBoosting_test": 6.203409236759128,
+      "GradientBoosting_secondary": 16.365476680972357,
+      "en_alpha": 0.01,
+      "en_l1_ratio": 0.5,
+      "sigma_Ah": 0.0,
+      "sigma_rel": 0.0,
+      "n_features": 60
+    },
+    {
+      "ElasticNet_test": 6.2405486275793125,
+      "ElasticNet_secondary": 26.029286751965074,
+      "RandomForest_test": 9.227488817877614,
+      "RandomForest_secondary": 11.30975117707683,
+      "GradientBoosting_test": 6.954935272520419,
+      "GradientBoosting_secondary": 13.390459359403414,
+      "en_alpha": 0.01,
+      "en_l1_ratio": 0.5,
+      "sigma_Ah": 0.001,
+      "sigma_rel": 0.00259483908303082,
+      "n_features": 60
+    },
+    {
+      "ElasticNet_test": 6.786380644607501,
+      "ElasticNet_secondary": 26.359265768499608,
+      "RandomForest_test": 10.648942016023117,
+      "RandomForest_secondary": 10.820402595302747,
+      "GradientBoosting_test": 6.3614173267094705,
+      "GradientBoosting_secondary": 15.717948371314227,
+      "en_alpha": 0.01,
+      "en_l1_ratio": 1.0,
+      "sigma_Ah": 0.003,
+      "sigma_rel": 0.007784517016261816,
+      "n_features": 60
+    },
+    {
+      "ElasticNet_test": 6.846465509540704,
+      "ElasticNet_secondary": 34.667926494318216,
+      "RandomForest_test": 10.349703948360187,
+      "RandomForest_secondary": 11.838618885357343,
+      "GradientBoosting_test": 9.671354281717123,
+      "GradientBoosting_secondary": 13.093817390931656,
+      "en_alpha": 0.01,
+      "en_l1_ratio": 0.9,
+      "sigma_Ah": 0.01,
+      "sigma_rel": 0.02594839036464691,
+      "n_features": 60
+    },
+    {
+      "ElasticNet_test": 8.05547278782175,
+      "ElasticNet_secondary": 28.24868807706248,
+      "RandomForest_test": 10.673264136846857,
+      "RandomForest_secondary": 12.422658235504786,
+      "GradientBoosting_test": 8.61486198584095,
+      "GradientBoosting_secondary": 12.945998508029517,
+      "en_alpha": 0.01,
+      "en_l1_ratio": 1.0,
+      "sigma_Ah": 0.03,
+      "sigma_rel": 0.07784517109394073,
+      "n_features": 60
+    }
+  ],
+  "baseline_N100_test_median_ape": {
+    "GradientBoosting": 6.203409236759128,
+    "RandomForest": 8.11884294525749,
+    "ElasticNet": 7.773730317338315
+  },
+  "baseline_sigma0_test_median_ape": {
+    "GradientBoosting": 6.203409236759128,
+    "RandomForest": 8.118842945257407,
+    "ElasticNet": 7.773730317338315
+  },
+  "elapsed_s": 10.8
+}
