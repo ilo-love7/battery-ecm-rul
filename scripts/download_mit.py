@@ -11,7 +11,8 @@ import time
 import requests
 
 BASE = "https://huggingface.co/datasets/bsebench-org/severson-2019-raw/resolve/main/"
-DEST_DIR = r"D:\新建文件夹\battery-data\mit"
+# 默认落点；换机器或换目录时设环境变量 MIT_DIR 覆盖即可，不用改代码
+DEST_DIR = os.environ.get("MIT_DIR", r"D:\项目\02_数据集\01_国际公开集\MIT_MATR-1\原始数据")
 FILES = [
     ("2017-05-12_batchdata_updated_struct_errorcorrect.mat", 3025320241),
     ("2017-06-30_batchdata_updated_struct_errorcorrect.mat", 2007331155),
