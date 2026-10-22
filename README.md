@@ -1,161 +1,160 @@
 <div align="center">
 
-# 锂电池等效电路建模与 RUL 寿命预测
+# Battery ECM Identification & Early Cycle-Life Prediction
 
-**Battery ECM Parameter Identification & Early Cycle-Life Prediction**
+**What you can measure is not what you can identify — a three-stage, reproducible study on public battery data**
 
-用 NASA PCoE 与 MIT-Stanford 公开数据，把「电池为什么变差」和「还能跑多久」做成一套可复现的代码。
-
-**一个项目，三个阶段**：P1 ECM 辨识与 RUL 预测（复现）· P2 PyBaMM 物理仿真（复现 + 创新）· P3 第三方辨识的审计（把前两条线接上）
-
+[![CI](https://github.com/ilo-love7/battery-ecm-rul/actions/workflows/ci.yml/badge.svg)](https://github.com/ilo-love7/battery-ecm-rul/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4%2B-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Data](https://img.shields.io/badge/Data-NASA%20PCoE%20%7C%20MIT--Stanford-blueviolet)](data/README.md)
-[![CI](https://github.com/ilo-love7/battery-ecm-rul/actions/workflows/ci.yml/badge.svg)](https://github.com/ilo-love7/battery-ecm-rul/actions/workflows/ci.yml)
+
+<p align="center">
+  <b>English</b> · <a href="./README.zh-CN.md">简体中文</a>
+</p>
 
 </div>
 
 ---
 
-## 结果速览
+Using the public NASA PCoE and MIT-Stanford datasets, this repository turns "why a battery degrades" and "how much longer it will last" into reproducible code.
 
-| 任务 | 指标 | 结果 | 参考 |
+**One project, three stages**: P1 ECM identification and RUL prediction (reproduction) · P2 PyBaMM physical simulation (reproduction + original work) · P3 audit of a third-party identification chain (the link that joins the first two).
+
+## Results at a glance
+
+| Task | Metric | Result | Reference |
 |---|---|---|---|
-| ECM 参数辨识 | 同工况复测电压 RMSE（4 颗 NASA 电池） | **1.61%**（中位）<br>0.96 / 1.49 / 1.72 / 3.29 % | 实测量程 2% |
-| 早期寿命预测 | 主测试集 43 颗中位相对误差 | **6.20%**（GBM，R²=0.93） | Severson 2019：9.1% |
-| 跨批次泛化 | 二级测试集 40 颗（batch3）中位相对误差 | **8.03%**（论文 6 特征，GBM） | 同配置主测试 8.58% |
-| 全量交叉验证 | 124 颗 5 折 CV 中位相对误差 | **7.37% ± 3.25**（RF） | — |
-| 物理仿真归因 | ΔQ(V) 形态与 MIT 实测的相关 | **+0.64**（锂库存损失）<br>+0.58（负极活性物质损失） | 见 [docs/sim.md](docs/sim.md) |
-| 第三方辨识审计 | P3 报的 R0 中采样伪影占比 | **63%**（真值 38.6 mΩ，报 105–107 mΩ） | 见 [docs/audit.md](docs/audit.md) |
+| ECM parameter identification | Same-condition re-test voltage RMSE (4 NASA cells) | **1.61%** (median)<br>0.96 / 1.49 / 1.72 / 3.29 % | measured range 2% |
+| Early cycle-life prediction | Main test set, 43 cells, median relative error | **6.20%** (GBM, R² = 0.93) | Severson 2019: 9.1% |
+| Cross-batch generalisation | Secondary test set, 40 cells (batch3), median relative error | **8.03%** (paper's 6 features, GBM) | same config on main test: 8.58% |
+| Full cross-validation | 124 cells, 5-fold CV, median relative error | **7.37% ± 3.25** (RF) | — |
+| Physical-simulation attribution | correlation of ΔQ(V) shape with MIT measurements | **+0.64** (lithium inventory loss)<br>+0.58 (negative-electrode active-material loss) | see [docs/sim.md](docs/sim.md) |
+| Third-party identification audit | share of sampling artefact in the R0 that P3 reports | **63%** (ground truth 38.6 mΩ, reported 105–107 mΩ) | see [docs/audit.md](docs/audit.md) |
 
-只使用每颗电池**前 100 圈**的数据，预测它跑到 80% 容量时的循环数（148–2237 圈，中位 736.5 圈）。
+Only the **first 100 cycles** of each cell are used, to predict the cycle at which it reaches 80% capacity (148–2237 cycles, median 736.5).
 
-> 上表第一行与论文同为官方划分，但特征与模型配置不同（本项目 60 维 + GBM，论文 6 特征 + ElasticNet），仅作量级参照。同配置的严格对标见下文「特征口径消融」。
+> The first row uses the same official split as the paper, but a different feature and model configuration (this project: 60 dimensions + GBM; paper: 6 features + ElasticNet), so it is a magnitude reference only. The strict same-configuration comparison is the feature-ablation section below.
 
 ---
 
-## 这个项目怎么读
+## How to read this project
 
-候选清单里的三项工作（P1 ECM/RUL、P2 物理仿真、P3 第三方辨识）原本分散推进，本仓库把它们收拢成
-**一个项目的三个阶段**，逐层提供证据：
+The three pieces of work on the candidate list (P1 ECM/RUL, P2 physical simulation, P3 third-party identification) were originally pursued separately. This repository pulls them into **three stages of one project**, each supplying a layer of evidence:
 
-| 阶段 | 做什么 | 关键产出 | 文档 |
+| Stage | What it does | Key output | Docs |
 |---|---|---|---|
-| **P1** | NASA 上辨识 Thevenin 参数；MIT 上前 100 圈预测寿命 | 复测 RMSE 1.61%；RUL 中位误差 6.20% | [docs/method.md](docs/method.md) · [docs/results.md](docs/results.md) |
-| **P2** | PyBaMM 建 DFN/SPM/Thevenin，注入已知退化模式 | ΔQ(V) 归因 LLI+LAM_neg（r 0.64/0.58）；内阻真值 38.6 mΩ | [docs/sim.md](docs/sim.md) |
-| **P3** | 审计第三方辨识链，并用 P2 当真值标尺 | 判据自证、参数由先验决定、τ2 不可辨识 | [docs/audit.md](docs/audit.md) |
+| **P1** | Identify Thevenin parameters on NASA; predict cycle life from the first 100 cycles on MIT | re-test RMSE 1.61%; RUL median error 6.20% | [docs/method.md](docs/method.md) · [docs/results.md](docs/results.md) |
+| **P2** | Build DFN/SPM/Thevenin in PyBaMM; inject known degradation modes | ΔQ(V) attributed to LLI + LAM_neg (r 0.64 / 0.58); internal-resistance ground truth 38.6 mΩ | [docs/sim.md](docs/sim.md) |
+| **P3** | Audit the third-party identification chain, using P2 as the ground-truth ruler | criterion proves itself; parameters set by the prior; τ2 unidentifiable | [docs/audit.md](docs/audit.md) |
 
-三阶段合并的结论：**能被测量 ≠ 能被辨识**。三条线的衔接如下。
+The conclusion that merges the three stages: **being measurable is not the same as being identifiable.**
 
-## 三条主线的衔接
+## How the three lines connect
 
 <table>
 <tr>
-<td width="50%"><img src="figures/fig_a2_fit_B0005.png" alt="ECM 拟合"></td>
-<td width="50%"><img src="figures/fig_c_02_dq_aging.png" alt="ΔQ(V) 老化信号"></td>
+<td width="50%"><img src="figures/fig_a2_fit_B0005.png" alt="ECM fit"></td>
+<td width="50%"><img src="figures/fig_c_02_dq_aging.png" alt="ΔQ(V) aging signal"></td>
 </tr>
 <tr>
-<td align="center"><b>主线一 · ECM</b>：Thevenin 等效电路拟合恒流放电曲线，<br>给出 OCV(SOC)、R0、R_dc(SOC) 等物理可解释参数</td>
-<td align="center"><b>主线二 · RUL</b>：ΔQ(V) 曲线的整体错位量<br>是早期老化最灵敏的信号</td>
+<td align="center"><b>Line 1 · ECM</b>: a Thevenin equivalent circuit fitted to constant-current discharge curves,<br>yielding physically interpretable parameters OCV(SOC), R0, R_dc(SOC)</td>
+<td align="center"><b>Line 2 · RUL</b>: the overall shift of the ΔQ(V) curve<br>is the most sensitive early aging signal</td>
 </tr>
 </table>
 
-前两条线共用同一套逐循环数据：ECM 解释「为什么变差」，RUL 回答「还能跑多久」。
-第三条线（PyBaMM 物理仿真）负责把两者接上——用含明确机制的电化学模型说明
-**ΔQ(V) 究竟测的是什么**，见 [第三节](#三物理仿真pybamm)。
+The first two lines share the same per-cycle data: ECM explains *why* a cell degrades, RUL answers *how much longer* it will last. The third line (PyBaMM simulation) connects them — an electrochemical model with explicit mechanisms shows **what ΔQ(V) actually measures**; see [section 3](#3-physical-simulation-pybamm).
 
-第四条线（[第四节](#四第三方-ecm-辨识的审计p3)）是一次反向检验：把第三方独立完成的 P3 ECM 辨识
-拿过来审计，用第三条线给出的内阻真值当标尺。结论是 **P3 报的参数不可辨识**，
-这反过来解释了为什么第一条线与第二条线必须分工——**能被测量 ≠ 能被辨识**。
+The fourth line ([section 4](#4-auditing-a-third-party-ecm-identification-p3)) is a reverse test: take an independently produced P3 ECM identification, audit it, and use the internal-resistance ground truth from line 3 as the ruler. The conclusion is that **the parameters P3 reports are not identifiable**, which in turn explains why lines 1 and 2 must be separated — **being measurable is not the same as being identifiable.**
 
 ---
 
-## 一、ECM 参数辨识（NASA PCoE）
+## 1. ECM parameter identification (NASA PCoE)
 
-**模型**：Thevenin 一阶 RC
+**Model**: first-order Thevenin RC
 
 $$V_t = \mathrm{OCV}(\mathrm{SOC}) - I\,R_0 - I\,R_1\left(1 - e^{-t/\tau_1}\right)$$
 
-**辨识流程**
+**Identification procedure**
 
-1. **OCV(SOC)**：取前 20 圈充放电电压按 SOC 分箱平均（抵消充放电极化滞回），再用 PCHIP 单调插值平滑。
-2. **OCV 偏置标定**：用训练圈残差拟合三阶多项式 δ(SOC)，消除「充放电平均法」在低 SOC 段的系统偏差。
-3. **R0**：放电电流阶跃（0 → 2 A）瞬间的 ΔV/ΔI，毫秒级，几乎不受 OCV 误差污染。
-4. **R_dc(SOC)**：恒流区逐 SOC 分箱计算 (OCV − V)/I；减去 R0 得到极化分量 R_pol。
-5. **验证**：第 1 次放电辨识，第 3 次放电同工况复测，计算电压 RMSE。
+1. **OCV(SOC)** — average charge and discharge voltages over the first 20 cycles, binned by SOC (cancels polarisation hysteresis), then smooth with monotone PCHIP interpolation.
+2. **OCV offset calibration** — fit a cubic polynomial δ(SOC) to the training-cycle residuals, removing the systematic low-SOC bias of the charge/discharge averaging.
+3. **R0** — ΔV/ΔI at the discharge current step (0 → 2 A), on a millisecond scale, essentially uncontaminated by OCV error.
+4. **R_dc(SOC)** — compute (OCV − V)/I per SOC bin in the constant-current region; subtract R0 to get the polarisation component R_pol.
+5. **Validation** — identify on the 1st discharge, re-test under the same condition on the 3rd, compute the voltage RMSE.
 
-**结果**
+**Results**
 
-| 电池 | R0 (mΩ) | R_dc(50%) (mΩ) | R_pol(50%) (mΩ) | 复测 RMSE |
+| Cell | R0 (mΩ) | R_dc(50%) (mΩ) | R_pol(50%) (mΩ) | Re-test RMSE |
 |---|---|---|---|---|
 | B0005 | 107.35 | 128.50 | 21.15 | 1.72% |
 | B0006 | 105.92 | 130.45 | 24.54 | **0.96%** |
 | B0007 | 107.58 | 128.27 | 20.68 | 3.29% ⚠️ |
 | B0018 | 105.05 | 135.68 | 30.63 | 1.49% |
 
-> ⚠️ **B0007 未达标（3.29%）**：该电池前 20 圈存在明显容量再生，OCV 估计被污染。这是数据本身的特性，不做隐藏。
+> ⚠️ **B0007 misses the target (3.29%)**: this cell shows pronounced capacity regeneration in its first 20 cycles, which contaminates the OCV estimate. That is a property of the data, and it is not hidden.
 
-**一个可迁移的结论**：SOH 从 100% 降到 70%，总直流内阻上升约 **33%**，而欧姆内阻只涨 **5%** —— 老化主要恶化的是极化过程，不是欧姆阻抗。
+**A transferable conclusion**: as SOH falls from 100% to 70%, total DC internal resistance rises by about **33%** while the ohmic component rises only **5%** — aging mainly degrades the polarisation process, not the ohmic impedance.
 
-**可辨识性边界**：NASA 是恒流放电（非 HPPC 脉冲），一次电流阶跃下极化电压仅约 40 mV，小于 OCV 的估计不确定度，因此 R1/C1、R2/C2 的 SOC 依赖**不可单独辨识**。二阶拟合会让 R2 撞上参数上界——这是数据决定的，不是模型缺陷。
+**Identifiability boundary**: NASA data is constant-current discharge (not HPPC pulses). A single current step produces only about 40 mV of polarisation voltage, below the OCV estimation uncertainty, so the SOC dependence of R1/C1 and R2/C2 is **not separately identifiable**. A second-order fit drives R2 into its parameter bound — that is what the data supports, not a model defect.
 
 ---
 
-## 二、早期寿命预测（MIT-Stanford）
+## 2. Early cycle-life prediction (MIT-Stanford)
 
-**任务**：输入前 100 圈的 ΔQ(V) 曲线 + 逐循环标量，输出寿命（至 80% 容量）。
+**Task**: input the ΔQ(V) curve over the first 100 cycles plus per-cycle scalars; output the cycle life (to 80% capacity).
 
-**特征（两套口径）**
+**Features (two conventions)**
 
-| 组 | 内容 | 维度 |
+| Group | Content | Dimensions |
 |---|---|---|
-| 论文 ΔQ(V) | `xq_log_var` / `xq_log_min` / `xq_log_mean`（Q₁₀₀ − Q₁₀ 的 log 统计） | 3 |
-| 滞回统计 | 第 2 圈 / 第 100 圈 / 两者差值的 min、var、log\|min\|、mean | 12 |
-| 滞回定点 | 3.0 / 3.2 / 3.4 / 3.5 V 处的容量差 | 12 |
-| 老化标量 | 容量、内阻、充电时间（首末值、比值、斜率、截距）、温度、库仑效率 | 18 |
-| 充电策略 | 15 维快充协议参数 | 15 |
+| Paper ΔQ(V) | `xq_log_var` / `xq_log_min` / `xq_log_mean` (log statistics of Q₁₀₀ − Q₁₀) | 3 |
+| Hysteresis statistics | min, var, log\|min\|, mean for cycle 2 / cycle 100 / their difference | 12 |
+| Hysteresis fixed points | capacity difference at 3.0 / 3.2 / 3.4 / 3.5 V | 12 |
+| Aging scalars | capacity, internal resistance, charge time (first/last value, ratio, slope, intercept), temperature, coulombic efficiency | 18 |
+| Charging policy | 15-dimensional fast-charge protocol parameters | 15 |
 
-`feature_sets()` 提供 `full`（60 维）与 `paper6`（论文 6 特征）两套列名，用于消融对比。
+`feature_sets()` provides both the `full` (60-dimension) and `paper6` (the paper's 6 features) column sets for ablation.
 
-**主协议结果**（严格按官方划分：训练 41 / 主测试 43 / 二级测试 40，60 维特征）
+**Main-protocol results** (strict official split: 41 train / 43 main test / 40 secondary test, 60-dimension features)
 
-| 模型 | 主测试中位误差 | 平均误差 | RMSE (圈) | R² | 二级测试中位误差 |
+| Model | Main-test median error | Mean error | RMSE (cycles) | R² | Secondary-test median error |
 |---|---|---|---|---|---|
 | **GradientBoosting** | **6.20%** | 12.87% | **105.1** | **0.93** | 16.37% |
-| ElasticNet（论文同款） | 7.77% | 21.27% | 369.7 | 0.11 | 28.64% |
+| ElasticNet (same as the paper) | 7.77% | 21.27% | 369.7 | 0.11 | 28.64% |
 | MLP | 7.69% | 26.01% | 378.7 | 0.06 | 24.71% |
 | RandomForest | 8.12% | 16.22% | 158.9 | 0.84 | **11.89%** |
 | 1D CNN | 32.67% | 38.95% | 527.4 | −0.82 | 57.09% |
-| 常数中位数（基线） | 17.14% | 29.54% | 431.6 | −0.22 | 45.33% |
+| Constant median (baseline) | 17.14% | 29.54% | 431.6 | −0.22 | 45.33% |
 
-![模型对比](figures/fig_c_03_model_compare.png)
+![Model comparison](figures/fig_c_03_model_compare.png)
 
-![预测散点](figures/fig_c_04_pred_scatter.png)
+![Prediction scatter](figures/fig_c_04_pred_scatter.png)
 
-> **统计口径提示（[docs/results.md](docs/results.md) 2.6）**：n=43 的样本量下，上表前四名模型的差距大多不具统计显著性——GBM 6.20% 对 EN 7.77% 的 Wilcoxon 配对检验 p=0.93，bootstrap 95% CI 宽达 5–9 个百分点。排名是描述性的；只有 RandomForest 显著劣于 GBM（p=0.006）、1D CNN 断崖式失败（p=1.8e-07）、二级测试上 RF 显著优于 GBM（p=0.0012）这三条是推断性结论。
+> **A note on statistics** ([docs/results.md](docs/results.md) 2.6): at n = 43, most of the gaps among the top four models are not statistically significant — the paired Wilcoxon test for GBM 6.20% vs EN 7.77% gives p = 0.93, and the bootstrap 95% CI is 5–9 percentage points wide. The ranking is descriptive. Only three statements are inferential: RandomForest is significantly worse than GBM (p = 0.006), the 1D CNN fails catastrophically (p = 1.8e-07), and RF is significantly better than GBM on the secondary test set (p = 0.0012).
 
-**特征口径消融：6 维 vs 60 维**
+**Feature-convention ablation: 6 vs 60 dimensions**
 
-同一划分、同一模型，只换特征集：
+Same split, same models, only the feature set changes:
 
-| 模型 | 主测试（60 维） | 主测试（6 维） | batch3（60 维） | batch3（6 维） |
+| Model | Main test (60-dim) | Main test (6-dim) | batch3 (60-dim) | batch3 (6-dim) |
 |---|---|---|---|---|
 | ElasticNet | 7.77% | 8.33% | 28.64% | **6.31%** |
 | GradientBoosting | **6.20%** | 8.58% | 16.37% | **8.03%** |
 | RandomForest | 8.12% | 9.38% | 11.89% | **8.22%** |
 
-![特征口径消融](figures/fig_c_08_ablation.png)
+![Feature ablation](figures/fig_c_08_ablation.png)
 
-**三个可以带走的判断**
+**Three takeaways**
 
-1. **特征口径决定跨批次泛化**。60 维里混进了编码充电协议的滞回特征：同分布 6.20% 很好看，跨批次 16.37% 就露馅。换成论文 6 维，8.58% → 8.03%，几乎不退化；弹性网更是从 28.64% 降到 6.31%（**4.5 倍**）。维度不是越多越好，关键是维度里有没有编码「环境」而不只是「电池」。
-2. **小样本下树模型最稳**。GBM 主测试 6.20%（R²=0.93），RF 跨批次 11.89%，两者各守一头。ElasticNet 在 60 维上 R² 只有 0.11——中位数好看、方差极大，不适合交付。
-3. **深度模型要的是「电池数」，不是「循环数」**。同一个 1D CNN，41 颗训练电池时 32.7%，99 颗（5 折 CV）时降到 12.1%。每颗电池只有 100 个循环点，模型真正要学的是电池之间的差异，41 颗撑不起卷积网络的参数估计。
+1. **The feature convention decides cross-batch generalisation.** The 60 dimensions include hysteresis features that encode the charging protocol: 6.20% in-distribution looks great, 16.37% across batches gives it away. Switch to the paper's 6 dimensions and 8.58% → 8.03%, barely degrading; ElasticNet improves from 28.64% to 6.31% (**4.5×**). More dimensions is not better — what matters is whether the dimensions encode "the environment" rather than just "the battery".
+2. **Tree models are the most stable at small sample sizes.** GBM gets 6.20% on the main test (R² = 0.93) and RF gets 11.89% across batches; each holds one end. ElasticNet has an R² of only 0.11 on 60 dimensions — a good median with enormous variance, unsuitable for delivery.
+3. **Deep models need "number of cells", not "number of cycles".** The same 1D CNN goes from 32.7% with 41 training cells to 12.1% with 99 (5-fold CV). Each cell contributes only 100 cycle points, so what the model must learn is the variation *between* cells — 41 is not enough to estimate a convolutional network's parameters.
 
-**补充协议**：全量 124 颗 5 折交叉验证（按电池分组，无循环级泄漏）
+**Supplementary protocol**: 5-fold cross-validation over all 124 cells (grouped by cell, no cycle-level leakage)
 
-| 模型 | 中位误差（均值 ± 标准差） |
+| Model | Median error (mean ± std) |
 |---|---|
 | RandomForest | **7.37% ± 3.25** |
 | GradientBoosting | 7.46% ± 1.66 |
@@ -165,300 +164,275 @@ $$V_t = \mathrm{OCV}(\mathrm{SOC}) - I\,R_0 - I\,R_1\left(1 - e^{-t/\tau_1}\righ
 
 ---
 
-## 三、物理仿真（PyBaMM）
+## 3. Physical simulation (PyBaMM)
 
-前两节都是数据驱动的：ECM 的参数是拟合出来的，ΔQ(V) 的特征是统计出来的。这一节用
-[PyBaMM](https://pybamm.org) 把「为什么」补上。完整方法与局限见 [docs/sim.md](docs/sim.md)。
+The first two sections are data-driven: ECM parameters are fitted, ΔQ(V) features are statistical. This section supplies the *why*, using [PyBaMM](https://pybamm.org). Full method and limitations in [docs/sim.md](docs/sim.md).
 
-**① 模型谱系：误差主要来自参数，不是结构**
+**① Model hierarchy: the error comes from parameters, not structure**
 
-1C 恒流放电，以 DFN 为参照：
+1C constant-current discharge, with DFN as the reference:
 
-| 模型 | 相对 DFN 电压 RMSE | 单次求解 |
+| Model | Voltage RMSE vs DFN | Single solve |
 |---|---|---|
-| DFN（全阶，电解液输运 + 颗粒扩散） | 0（参照） | 0.42 s |
-| SPM（单粒子） | **5.2 mV** | 0.17 s |
-| Thevenin（用 SPM 反演参数） | 17.2 mV | 0.02 s |
-| Thevenin（用阶段 A 辨识参数） | **201.0 mV** | 0.02 s |
+| DFN (full order, electrolyte transport + particle diffusion) | 0 (reference) | 0.42 s |
+| SPM (single particle) | **5.2 mV** | 0.17 s |
+| Thevenin (parameters inverted from SPM) | 17.2 mV | 0.02 s |
+| Thevenin (parameters identified in stage A) | **201.0 mV** | 0.02 s |
 
-**结构降阶只花 5–17 mV，参数错配要花 200 mV。** 阶段 A 从 NASA B0005 辨识的 R0 = 107 mΩ
-是老化态的值，而 Prada2013 新电池只有约 30 mΩ——ECM 没错，是参数不能跨电池状态搬运。
+**Structural reduction costs only 5–17 mV; parameter mismatch costs 200 mV.** The R0 = 107 mΩ identified from NASA B0005 in stage A is an aged value, while a fresh Prada2013 cell is about 30 mΩ — the ECM is not wrong, the parameters simply cannot be carried across battery states.
 
-![模型谱系](figures/fig_d_01_model_hierarchy.png)
+![Model hierarchy](figures/fig_d_01_model_hierarchy.png)
 
-**② 快充：t80 能压 2.8 倍，总时长只能压 1.5 倍**
+**② Fast charging: t80 can be cut 2.8×, total duration only 1.5×**
 
-7 条多步恒流协议的仿真结果：1C 的 t80 是 **45.2 min**、总时长 85.4 min；4.8C 多步把 t80
-压到 **16.2 min**（−64%），总时长却只降到 56.8 min（−34%）——差的这一块全在恒压段。
-所以「插枪到拔枪」的时长不是衡量快充的好指标，Severson 用 t80 是有道理的。
+Simulation of seven multi-step constant-current protocols: 1C gives t80 = **45.2 min** and total duration 85.4 min; a 4.8C multi-step brings t80 down to **16.2 min** (−64%) while total duration only falls to 56.8 min (−34%) — the difference is entirely the constant-voltage stage. So "plug-in to unplug" duration is a poor fast-charge metric, and Severson's use of t80 is justified.
 
-温升从 8.4 K 升到 29.9 K（`sev_4_8` 最高）。另外有个副产品：把 3C 段放到 80% SOC 之后
-（`1C(80%)-3C(20%)`），端电压一上来就贴着 4.2 V，这段恒流**一步也没走成**，整条协议退化为
-1C 恒流——两条协议的容量衰减、温升、t80 逐位相同。
+Temperature rise goes from 8.4 K to 29.9 K (`sev_4_8` is the highest). There is a by-product finding too: putting the 3C segment after 80% SOC (`1C(80%)-3C(20%)`) means the terminal voltage sits at 4.2 V immediately, so that constant-current segment **never executes a single step** and the whole protocol degenerates to 1C constant current — the two protocols' capacity fade, temperature rise and t80 agree bit for bit.
 
-![快充协议](figures/fig_d_03_fastcharge_heat.png)
+![Fast-charge protocols](figures/fig_d_03_fastcharge_heat.png)
 
-**③ ΔQ(V) 到底测什么**
+**③ What ΔQ(V) actually measures**
 
-在 LFP 参数集上分别注入三种退化模式，看 ΔQ(V) 被掰成什么形状，再与 MIT 实测比对：
+Inject three degradation modes into the LFP parameter set, see how ΔQ(V) is deformed, and compare against the MIT measurements:
 
-| 退化模式 | 与实测形态的相关 |
+| Degradation mode | Correlation with measured shape |
 |---|---|
-| 锂库存损失 LLI | **r = +0.64** |
-| 负极活性物质损失 LAM_neg | **r = +0.58** |
-| 正极活性物质损失 LAM_pos | r = −0.07 |
+| Lithium inventory loss (LLI) | **r = +0.64** |
+| Negative-electrode active-material loss (LAM_neg) | **r = +0.58** |
+| Positive-electrode active-material loss (LAM_pos) | r = −0.07 |
 
-**实测的 ΔQ(V) 主要由「锂库存损失 + 负极活性物质损失」决定，正极几乎不参与**——这正是
-LFP 电池的化学特性。ΔQ(V) 之所以能预测寿命，是因为它同时编码了「损失多少」和「损失在哪」。
+**The measured ΔQ(V) is dominated by lithium inventory loss plus negative-electrode active-material loss; the positive electrode barely participates** — exactly the chemistry of an LFP cell. ΔQ(V) predicts cycle life because it encodes both *how much is lost* and *where it is lost*.
 
-![退化模式](figures/fig_d_04_degradation_modes.png)
+![Degradation modes](figures/fig_d_04_degradation_modes.png)
 
-**④ 一个诚实的负结果**
+**④ An honest negative result**
 
-把仿真拆出的三种模式系数当作特征喂回预测模型，**没有任何改善**：
+Feeding the three simulated mode coefficients back into the prediction model as features gives **no improvement at all**:
 
-| 特征组合 | 主测试 43 颗 | batch3 40 颗 |
+| Feature set | Main test, 43 cells | batch3, 40 cells |
 |---|---|---|
-| P1 基线（论文 6 特征，EN） | 8.33% | **6.31%** |
-| P1 + 仿真模式系数（EN） | 8.41% | 6.69% |
-| P1 基线（GBM） | 8.58% | 8.03% |
-| P1 + 仿真模式系数（GBM） | 9.63% | 8.31% |
+| P1 baseline (paper's 6 features, EN) | 8.33% | **6.31%** |
+| P1 + simulated mode coefficients (EN) | 8.41% | 6.69% |
+| P1 baseline (GBM) | 8.58% | 8.03% |
+| P1 + simulated mode coefficients (GBM) | 9.63% | 8.31% |
 
-原因是模式系数在 124 颗电池之间几乎没有差异（LLI 占比标准差仅 0.018），而仿真基与实测形态
-的相关只有 0.64——**物理可解释性不等于统计有效性**。按项目验收口径（提升 ≥5%），这一项未达标，
-如实记录。
+The reason is that the mode coefficients barely vary across the 124 cells (the standard deviation of the LLI share is only 0.018), and the correlation between the simulated basis and the measured shape is only 0.64 — **physical interpretability is not statistical validity**. Under this project's acceptance criterion (≥5% improvement) this item fails, and it is recorded as such.
 
-> **一句话总结**：仿真解释了 ΔQ(V) 为什么有效，但替代不了它。
+> **In one sentence**: the simulation explains why ΔQ(V) works, but it cannot replace it.
 
 ---
 
-## 四、第三方 ECM 辨识的审计（P3）
+## 4. Auditing a third-party ECM identification (P3)
 
-候选清单第 3 项（P3）是一份由**另一个 AI 独立完成**的 ECM 参数辨识。它交付了一套完整的
-辨识链：松弛段双指数拟合 → 先验 OCV 锚定 r_dc → 幅值比例分解 R0:R1:R2 → 反推 OCV → 仿真复算。
-复算 RMSE ≤ 8.7 mV，看起来通过了「≤2% 量程」的验收。
+Item 3 on the candidate list (P3) is an ECM parameter identification completed **independently by another AI**. It delivers a complete identification chain: two-exponential fit of the relaxation segment → prior-anchored OCV to fix r_dc → amplitude-ratio decomposition of R0:R1:R2 → OCV back-solved → simulation re-computed. The re-computed RMSE is ≤ 8.7 mV, which looks like it passes the "≤2% of range" acceptance bar.
 
-本项目没有重做它，而是把它的链条拆开逐条检验。**结论是它报的三个核心量都不可辨识**，
-完整推导见 [docs/audit.md](docs/audit.md)。
+This project does not redo it; it takes the chain apart and tests each link. **The conclusion is that all three of its core quantities are unidentifiable.** Full derivation in [docs/audit.md](docs/audit.md).
 
-**① 判据自证：参数翻倍，残差不变**
+**① The criterion proves itself: double the parameters, the residual stays put**
 
-P3 的 OCV 是从参数反推出来的（`OCV := V_meas + I·ΣRᵢ(1−e^(−t/τᵢ))`），再用同一组参数仿真回去，
-残差只剩离散化误差：
+P3's OCV is back-solved from the parameters (`OCV := V_meas + I·ΣRᵢ(1−e^(−t/τᵢ))`) and then re-simulated with the same set, so the residual contains only discretisation error:
 
-| 参数集 | B0005 | B0006 | B0007 |
+| Parameter set | B0005 | B0006 | B0007 |
 |---|---|---|---|
-| P3 原参数 | 0.12 mV | 0.16 mV | 0.15 mV |
-| 参数 ×2 | 0.24 mV | 0.31 mV | 0.31 mV |
-| 参数 ×0.5 | 0.06 mV | 0.08 mV | 0.08 mV |
-| 换另一颗电池的模型 | 9.63 mV | 8.68 mV | 11.96 mV |
+| P3's original parameters | 0.12 mV | 0.16 mV | 0.15 mV |
+| Parameters ×2 | 0.24 mV | 0.31 mV | 0.31 mV |
+| Parameters ×0.5 | 0.06 mV | 0.08 mV | 0.08 mV |
+| Another cell's model substituted | 9.63 mV | 8.68 mV | 11.96 mV |
 
-内阻翻倍或减半，RMSE 都压在 0.31 mV 以内。**这个判据对参数没有任何约束力。**
+Whether the internal resistance is doubled or halved, the RMSE stays within 0.31 mV. **The criterion places no constraint on the parameters at all.**
 
-**② 参数由先验决定**
+**② The parameters are decided by the prior**
 
-`r_dc_mid = (OCV50_prior − V(SOC=0.5)) / I`。先验从 3.76 扫到 3.96 V（±0.1 V），
-三颗电池的 r_dc 从 115.5/116.6/116.0 一路涨到 214.8/215.9/216.6 mΩ——**先验动 1 mV，r_dc 动 0.5 mΩ**。
-P3 自述的不确定度 ±25 mΩ，低估了 4 倍。而三颗电池在任何先验下曲线都重合，
-所以它报的「三颗电池 r_dc 一致」不是辨识结论，是同一个先验被复读了三次。
+`r_dc_mid = (OCV50_prior − V(SOC=0.5)) / I`. Sweeping the prior from 3.76 to 3.96 V (±0.1 V) moves r_dc for the three cells from 115.5/116.6/116.0 all the way to 214.8/215.9/216.6 mΩ — **a 1 mV prior shift moves r_dc by 0.5 mΩ**. P3's self-reported uncertainty of ±25 mΩ underestimates this by 4×. And the three cells' curves coincide under any prior, so its claim that "the three cells' r_dc agree" is not an identification result — it is the same prior read out three times.
 
-**③ τ2 是窗口的函数**
+**③ τ2 is a function of the window**
 
-B0006 的松弛窗口只有 77.7 s，却报出 τ2 = 95.0 s——时间常数比观测窗口还长。
-把 B0005 的窗口砍到 45%，τ2 从 162.4 s 掉到 94.3 s。
+B0006's relaxation window is only 77.7 s, yet it reports τ2 = 95.0 s — a time constant longer than the observation window. Cut B0005's window to 45% and τ2 drops from 162.4 s to 94.3 s.
 
-![可辨识性](figures/fig_e_03_identifiability.png)
+![Identifiability](figures/fig_e_03_identifiability.png)
 
-**④ 采样率决定 R0：P2 当标尺**
+**④ The sampling rate decides R0: P2 as the ruler**
 
-把 P3 的流程原样套到 PyBaMM 的 DFN 合成曲线上，只改采样间隔：
+Apply P3's procedure unchanged to a PyBaMM DFN synthetic curve, changing only the sampling interval:
 
-| dt | R0 / mΩ | R1+R2 / mΩ | 首点压降/I |
+| dt | R0 / mΩ | R1+R2 / mΩ | first-point drop / I |
 |---|---|---|---|
-| 0.05 s | **38.6**（真值） | −3.7 | 38.6 |
+| 0.05 s | **38.6** (ground truth) | −3.7 | 38.6 |
 | 2 s | 74.1 | −39.3 | 71.2 |
-| 18.7 s（NASA 实际间隔） | **208.1** | −173.6 | 105.0 |
+| 18.7 s (NASA's actual interval) | **208.1** | −173.6 | 105.0 |
 
-采样越粗，R0 膨胀 5.4 倍、R1/R2 变负。P3 报的「阶跃内阻」105.9–107.5 mΩ 与合成曲线在
-dt=18.7 s 下的 105.0 mΩ 几乎逐位重合——**它测到的东西里有 63% 是采样伪影**。
+The coarser the sampling, the more R0 inflates (5.4×) and the more R1/R2 go negative. The "step internal resistance" P3 reports, 105.9–107.5 mΩ, coincides almost bit for bit with the synthetic curve's 105.0 mΩ at dt = 18.7 s — **63% of what it measured is sampling artefact**.
 
-![采样审计](figures/fig_f_01_sampling_audit.png)
+![Sampling audit](figures/fig_f_01_sampling_audit.png)
 
-**⑤ 反过来，这解释了 P1 为什么不用内阻**
+**⑤ Conversely, this explains why P1 does not use internal resistance**
 
-| 退化模式 | R0 变化（3%→10%） | ΔQ 深度（3%→10%） |
+| Degradation mode | R0 change (3%→10%) | ΔQ depth (3%→10%) |
 |---|---|---|
-| 锂库存损失 LLI | 37.6 → 35.8 mΩ（−7.1%） | 70.6 → 235.2 mAh |
-| 正极活性材料损失 LAM_pos | 38.7 → 38.9 mΩ（+0.8%） | 2.6 → 9.5 mAh |
-| 负极活性材料损失 LAM_neg | 39.3 → 41.0 mΩ（+6.2%） | 68.8 → 229.4 mAh |
+| Lithium inventory loss (LLI) | 37.6 → 35.8 mΩ (−7.1%) | 70.6 → 235.2 mAh |
+| Positive-electrode active-material loss (LAM_pos) | 38.7 → 38.9 mΩ (+0.8%) | 2.6 → 9.5 mAh |
+| Negative-electrode active-material loss (LAM_neg) | 39.3 → 41.0 mΩ (+6.2%) | 68.8 → 229.4 mAh |
 
-内阻对三种退化模式几乎不敏感且方向不一致；ΔQ(V) 跨模式差 25 倍。
-**这就是 P1 全部特征建在 ΔQ(V) 上的物理原因。**
+Internal resistance is nearly insensitive to all three degradation modes, and in inconsistent directions; ΔQ(V) differs across modes by a factor of 25. **That is the physical reason P1 builds every feature on ΔQ(V).**
 
-![特征族](figures/fig_f_02_feature_families.png)
+![Feature families](figures/fig_f_02_feature_families.png)
 
-> **三线合并的一句话**：P1 用 ΔQ(V) 预测寿命；P2 证明 ΔQ(V) 编码的是 LLI + LAM_neg，并给出内阻真值；
-> P3 的辨识链在结构上给不出内阻真值。**能被测量 ≠ 能被辨识。**
+> **The three lines in one sentence**: P1 predicts cycle life from ΔQ(V); P2 shows that ΔQ(V) encodes LLI + LAM_neg and supplies the internal-resistance ground truth; P3's identification chain structurally cannot produce that ground truth. **Being measurable is not the same as being identifiable.**
 
 ---
 
-## 五、数据口径：124 颗是怎么来的
+## 5. Data convention: where 124 cells come from
 
-MIT-Stanford 三个 batch 里并不是每颗电池都能进论文口径。本项目**不硬编码编号**，而是完整复刻官方 `LoadData.m`（见 [`reference/LoadData.m`](reference/LoadData.m)）的处理顺序：
+Not every cell in the three MIT-Stanford batches qualifies under the paper's convention. This project **does not hard-code cell IDs**; it replicates the official `LoadData.m` processing order exactly (see [`reference/LoadData.m`](reference/LoadData.m)):
 
-| batch | 处理 | 保留 |
+| batch | Processing | Kept |
 |---|---|---|
-| batch1 | 46 颗，先把 batch2 的 5 颗续测电池拼接回来，再剔除 5 颗未跑完的电池 | 41 |
-| batch2 | 5 颗续测（batch1 电池的后半程）拼回 batch1 后，其余保留 | 43 |
-| batch3 | 删第 38 颗（channel 46 采集异常）→ 删末端容量 > 0.885 Ah → 删噪声电池 [3, 40, 41] | 40 |
-| **合计** | | **124 = 41 + 43 + 40** |
+| batch1 | 46 cells; splice the 5 continuation cells from batch2 back in first, then drop the 5 unfinished cells | 41 |
+| batch2 | the 5 continuation cells (second half of batch1 cells) are spliced into batch1; the rest are kept | 43 |
+| batch3 | drop cell 38 (channel 46 acquisition fault) → drop end-of-life capacity > 0.885 Ah → drop noisy cells [3, 40, 41] | 40 |
+| **Total** | | **124 = 41 + 43 + 40** |
 
-**寿命标签**：首次 `QDischarge < 0.88 Ah` 的循环号。第 1 圈是化成圈、容量记为 0，**必须跳过**，否则所有电池都会被判成 1 圈。重算标签与文件自带 `cycle_life` 逐颗比对，最大偏差 **0 圈**。
+**Cycle-life label**: the cycle number at which `QDischarge < 0.88 Ah` first occurs. Cycle 1 is the formation cycle with capacity recorded as 0 and **must be skipped**, otherwise every cell would be labelled 1 cycle. Re-computed labels were compared cell by cell against the bundled `cycle_life`, with a maximum deviation of **0 cycles**.
 
-> 口径不对齐，后面所有指标都不可比。这一步是整个项目的地基。
+> If the convention is not aligned, every downstream metric is incomparable. This step is the foundation of the whole project.
 
 ---
 
-## 六、快速开始
+## 6. Quick start
 
 ```bash
-git clone <this-repo>
-cd <repo>
-pip install -r requirements.txt          # 基础依赖
-# pip install -r requirements-full.txt   # 追加 torch / streamlit
+git clone https://github.com/ilo-love7/battery-ecm-rul.git
+cd battery-ecm-rul
+pip install -r requirements.txt          # core dependencies
+# pip install -r requirements-full.txt   # adds torch / streamlit
 ```
 
-**准备数据**：按 [`data/README.md`](data/README.md) 下载 NASA PCoE 与 MIT-Stanford 数据集，放到 `data/raw/`。也可用环境变量指定：
+**Prepare data**: download the NASA PCoE and MIT-Stanford datasets following [`data/README.md`](data/README.md) and place them under `data/raw/`. Environment variables also work:
 
 ```bash
 export MIT_DIR=/path/to/mit      # Windows: set MIT_DIR=D:\data\mit
 export NASA_DIR=/path/to/nasa
 ```
 
-**复现**
+**Reproduce**
 
 ```bash
-# 0) 单元测试（合成数据，不需要原始数据集，约 2 秒）
+# 0) Unit tests (synthetic data, no raw datasets needed, ~2 s)
 python -m pytest tests/ -q
 
-# 1) 统一数据集：原始 .mat → Parquet / NPZ（MIT 8.3 GB 约 20 分钟）
+# 1) Unified dataset: raw .mat → Parquet / NPZ (MIT 8.3 GB, ~20 min)
 python scripts/phase_b_build_dataset.py all
 
-# 2) ECM 参数辨识 + 内阻老化轨迹（约 1 分钟）
+# 2) ECM parameter identification + internal-resistance aging track (~1 min)
 python scripts/phase_a2_ecm.py
 
-# 3) RUL 建模与评估（约 4 分钟，CPU）
+# 3) RUL modelling and evaluation (~4 min, CPU)
 python scripts/phase_c_rul.py
 
-# 4) PyBaMM 物理仿真（约 1 分钟；需 pip install -r requirements-full.txt）
+# 4) PyBaMM physical simulation (~1 min; needs requirements-full.txt)
 python scripts/phase_d1_pybamm_sim.py
 python scripts/phase_d2_sim_rul.py
 
-# 5) P3 审计与三线桥接（约 2 分钟）
+# 5) P3 audit and three-line bridge (~2 min)
 python scripts/phase_e_p3_audit.py
 python scripts/phase_f_bridge.py
 
-# 5) 重新生成交付物（Word 报告 + HTML 看板）
+# 5) Regenerate deliverables (Word report + HTML dashboard)
 python scripts/build_report_docx.py
 python scripts/build_dashboard.py
 
-# 6) 交互式小工具
+# 6) Interactive tool
 streamlit run src/app/app.py
 ```
 
-或使用 Makefile：`make test && make data && make ecm && make rul && make sim && make audit`。
-`tests/` 里的 9 个用例全部用合成数据，覆盖 ECM 参数恢复（真值可复现）、ΔQ(V) 两种口径的量纲与端点、
-以及对外报告指标的同口径定义——不需要下载 8.6 GB 原始数据也能验证核心算法没被改坏。
+Or use the Makefile: `make test && make data && make ecm && make rul && make sim && make audit`.
+The 9 test cases in `tests/` all use synthetic data, covering ECM parameter recovery (ground truth reproducible), the dimensions and endpoints of both ΔQ(V) conventions, and the same-convention definitions of the reported metrics — so you can verify the core algorithms have not been broken without downloading 8.6 GB of raw data.
 
-**产物**
+**Artifacts**
 
-| 路径 | 内容 |
+| Path | Content |
 |---|---|
-| `reports/phaseC_metrics.csv` | 五类模型 × 两个测试集的完整指标 |
-| `reports/phaseC_cv.csv` | 5 折交叉验证逐折结果 |
-| `reports/phaseC_predictions.csv` | 每颗电池 5 个模型的预测值 |
-| `reports/phaseA2_ecm_results.csv` | ECM 参数与复测 RMSE |
-| `reports/phaseD1_*.csv` / `phaseD2_*.csv` | 仿真谱系、协议、退化模式、仿真增强对照 |
-| `reports/phaseE_*.csv` / `phaseF_*.csv` | P3 审计（参数、自洽残差、先验扫描、可辨识性）与桥接（采样审计、特征族） |
-| `figures/` | 全部结果图 |
-| `data/processed/` | 可重建的中间数据集（已 git 忽略） |
+| `reports/phaseC_metrics.csv` | full metrics for five model families × two test sets |
+| `reports/phaseC_cv.csv` | per-fold results of the 5-fold cross-validation |
+| `reports/phaseC_predictions.csv` | per-cell predictions from all five models |
+| `reports/phaseA2_ecm_results.csv` | ECM parameters and re-test RMSE |
+| `reports/phaseD1_*.csv` / `phaseD2_*.csv` | model hierarchy, protocols, degradation modes, simulation-augmented comparison |
+| `reports/phaseE_*.csv` / `phaseF_*.csv` | P3 audit (parameters, self-consistency residual, prior sweep, identifiability) and bridge (sampling audit, feature families) |
+| `figures/` | all result figures |
+| `data/processed/` | rebuildable intermediate datasets (git-ignored) |
 
 ---
 
-## 七、仓库结构
+## 7. Repository layout
 
 ```
 .
 ├── src/
-│   ├── parsers/          nasa.py（MATLAB v7）/ mit.py（v7.3 HDF5 + 官方 124 颗口径）
-│   ├── ecm/              Thevenin 模型、OCV-SOC、最小二乘辨识
-│   ├── features/         dq.py：ΔQ(V) 特征工程
-│   ├── rul/              features.py 60 维宽表 + 两套口径 / models.py 五类模型
-│   ├── sim/              PyBaMM 封装：models.py 模型与参数 / protocols.py 快充协议 / runner.py 实验与曲线抽取
-│   └── app/              app.py：Streamlit 小工具
-├── tests/                test_core.py：9 个合成数据用例（ECM 参数恢复 / ΔQ 口径 / 指标定义）
+│   ├── parsers/          nasa.py (MATLAB v7) / mit.py (v7.3 HDF5 + the official 124-cell convention)
+│   ├── ecm/              Thevenin model, OCV-SOC, least-squares identification
+│   ├── features/         dq.py: ΔQ(V) feature engineering
+│   ├── rul/              features.py 60-dimension wide table + two conventions / models.py five model families
+│   ├── sim/              PyBaMM wrapper: models.py models and parameters / protocols.py fast-charge protocols / runner.py experiments and curve extraction
+│   └── app/              app.py: Streamlit tool
+├── tests/                test_core.py: 9 synthetic-data cases (ECM recovery / ΔQ convention / metric definitions)
 ├── scripts/
-│   ├── phase_b_build_dataset.py   原始数据 → 统一 Parquet / NPZ
-│   ├── phase_a2_ecm.py            ECM 辨识 + OCV 标定 + 内阻老化
-│   ├── phase_c_rul.py             RUL 建模、评估、出图
-│   ├── phase_d1_pybamm_sim.py     PyBaMM 模型谱系、倍率、快充发热
-│   ├── phase_d2_sim_rul.py        退化模式归因 + 仿真增强对照
-│   ├── phase_e_p3_audit.py        P3 审计：自洽性、先验敏感性、可辨识性
-│   ├── phase_f_bridge.py          三线桥接：采样率审计 + 内阻/ΔQ 特征族
-│   ├── build_dashboard.py         生成离线 HTML 看板
-│   └── build_report_docx.py       生成 Word 总结报告
+│   ├── phase_b_build_dataset.py   raw data → unified Parquet / NPZ
+│   ├── phase_a2_ecm.py            ECM identification + OCV calibration + internal-resistance aging
+│   ├── phase_c_rul.py             RUL modelling, evaluation, figures
+│   ├── phase_d1_pybamm_sim.py     PyBaMM model hierarchy, C-rates, fast-charge heat
+│   ├── phase_d2_sim_rul.py        degradation-mode attribution + simulation-augmented comparison
+│   ├── phase_e_p3_audit.py        P3 audit: self-consistency, prior sensitivity, identifiability
+│   ├── phase_f_bridge.py          three-line bridge: sampling audit + internal-resistance/ΔQ feature families
+│   ├── build_dashboard.py         generate the offline HTML dashboard
+│   └── build_report_docx.py       generate the Word summary report
 ├── docs/
-│   ├── worklog.md        阶段推进、踩坑清单、关键决策
-│   ├── data.md           数据集与口径
-│   ├── method.md         方法细节
-│   ├── results.md        完整指标与结论
-│   ├── sim.md            物理仿真：谱系、快充、ΔQ 归因、负结果
-│   ├── audit.md          P3 审计 + 三线合并：能被测量 ≠ 能被辨识
-│   └── sibling_projects.md  与 battery-lifetime-guide 的分工、口径对照与合并代价
-├── 交付物/               Word 项目总结报告 + 离线 HTML 数据看板
-├── data/                 数据目录约定（原始数据不入库）
-├── figures/              结果图（README.md 为图库索引）
-├── reports/              指标表、小结
-├── reference/            官方 LoadData.m（仅作口径对照）
-├── requirements.txt      核心依赖
-├── requirements-full.txt 含 torch / streamlit / pybamm
-└── environment.yml       conda 环境
+│   ├── worklog.md        stage progress, pitfall list, key decisions
+│   ├── data.md           datasets and conventions
+│   ├── method.md         method details
+│   ├── results.md        full metrics and conclusions
+│   ├── sim.md            physical simulation: hierarchy, fast charge, ΔQ attribution, negative results
+│   ├── audit.md          P3 audit + three-line merge: being measurable ≠ being identifiable
+│   └── sibling_projects.md  division of labour with battery-lifetime-guide, convention comparison, cost of merging
+├── 交付物/               Word project report + offline HTML data dashboard
+├── data/                 data directory conventions (raw data not committed)
+├── figures/              result figures (README.md is the figure index)
+├── reports/              metric tables, summaries
+├── reference/            official LoadData.m (for convention comparison only)
+├── requirements.txt      core dependencies
+├── requirements-full.txt with torch / streamlit / pybamm
+└── environment.yml       conda environment
 ```
 
 ---
 
-## 八、已知局限
+## 8. Known limitations
 
-- **CALCE 缺席**：官网需签署许可，本项目未纳入。ECM 用 NASA、RUL 用 MIT-Stanford，两条线各自有独立数据支撑。
-- **深度模型欠拟合**：1D CNN 在 41 颗训练电池下误差 43%，这是小样本的固有限制，已用 5 折 CV 对照说明，不做粉饰。
-- **单批次 ECM**：ECM 只在 NASA 4 颗电池上做同工况复测，未做跨温度、跨倍率验证。
-- **B0007 超标**：前 20 圈容量再生污染 OCV，复测 RMSE 3.29%，如实保留。
-- **学习曲线未饱和**：训练电池从 10 增到 41，误差从约 13% 降到约 8.7%，增加电池数仍有收益。
-- **仿真参数未标定到真实寿命量级**：析锂机制的 30 圈容量损失达 35%，只能比较协议间的相对排序，绝对寿命无意义。
-- **仿真的化学体系与实测不完全一致**：ΔQ 归因用 LFP（Prada2013），产热与析锂用 NMC（Chen2020 / OKane2022），跨体系只能比形态不能比数值。
-- **充电协议的名义时长 ≠ 实际轨迹**：恒流段被 4.2 V 上限截断，`1C(80%)-3C(20%)` 里的 3C 段一步也没走成，整条协议退化为 1C 恒流。7 条协议的 30 圈容量损失只差 1.7 个百分点（离散度 0.05，实测 2.61），「协议 → 寿命」这条链条在本仿真里没有复现出来。
-- **P3 的辨识结果不能当参数用**：它报的 R0（65–86 mΩ）里 63% 是 18.7 s 采样间隔的伪影，r_dc 由 OCV 先验决定，τ2 短于观测窗口。审计与修复建议见 [docs/audit.md](docs/audit.md)。
+- **CALCE is absent**: its official site requires a signed licence, so it is not included. ECM uses NASA and RUL uses MIT-Stanford; each line has independent data support.
+- **Deep models underfit**: the 1D CNN has 43% error with 41 training cells. That is an inherent small-sample limit, illustrated by the 5-fold CV comparison and not glossed over.
+- **Single-batch ECM**: ECM is only re-tested on 4 NASA cells under the same condition; no cross-temperature or cross-C-rate validation.
+- **B0007 exceeds the bar**: capacity regeneration in the first 20 cycles contaminates the OCV; re-test RMSE is 3.29%, kept as is.
+- **The learning curve has not saturated**: going from 10 to 41 training cells moves the error from about 13% to about 8.7%; adding more cells still helps.
+- **Simulation parameters are not calibrated to real lifetime scale**: the lithium-plating mechanism produces 35% capacity loss in 30 cycles, so only relative rankings between protocols are meaningful; absolute lifetime is not.
+- **The simulated chemistry does not fully match the measurements**: ΔQ attribution uses LFP (Prada2013), while heat generation and plating use NMC (Chen2020 / OKane2022); across chemistries only shapes can be compared, not values.
+- **Nominal protocol duration ≠ the actual trajectory**: the constant-current segment is clipped by the 4.2 V ceiling, and the 3C segment in `1C(80%)-3C(20%)` never executes, so the whole protocol degenerates to 1C constant current. The 30-cycle capacity loss of the seven protocols differs by only 1.7 percentage points (dispersion 0.05, measured 2.61) — the "protocol → lifetime" chain is not reproduced in this simulation.
+- **P3's identification results cannot be used as parameters**: 63% of the R0 it reports (65–86 mΩ) is an artefact of the 18.7 s sampling interval, r_dc is decided by the OCV prior, and τ2 is shorter than the observation window. Audit and remediation suggestions in [docs/audit.md](docs/audit.md).
 
 ---
 
-## 九、参考与致谢
+## 9. References and credits
 
 - Severson, K. A. et al. *Data-driven prediction of battery cycle life before capacity degradation.* **Nature Energy** 4, 383–391 (2019).
 - NASA PCoE. *Battery Data Set*, NASA Ames Prognostics Center of Excellence.
 - MIT-Stanford. *Battery Cycling Dataset* (<https://data.matr.io/1/>).
-- `reference/LoadData.m` 版权归 MIT-Stanford 数据集原作者，此处仅用于复刻数据筛选口径。
-- [battery-lifetime-guide](https://github.com/ilo-love7/battery-lifetime-guide)：同一数据集的另一份独立复现，本仓库的 EN 结果与其对照（见 `docs/sibling_projects.md`）。
+- `reference/LoadData.m` is copyright the original authors of the MIT-Stanford dataset and is used here only to replicate the data-selection convention.
+- [battery-lifetime-guide](https://github.com/ilo-love7/battery-lifetime-guide): a second independent reproduction on the same datasets; this repository's EN results are compared against it (see `docs/sibling_projects.md`).
 
-## 兄弟仓库：同一领域的另一份复现
+## Sibling repository: another reproduction in the same field
 
-[battery-lifetime-guide](https://github.com/ilo-love7/battery-lifetime-guide) 用同一批公开数据（NASA PCoE + MIT-Stanford）
-复现同一篇 Severson 2019，形态是**带「事故现场」的学习攻略**（step1→6 线性脚本 + FAQ + 面试卡）；
-本仓库形态是**自洽的证据链**（ECM 辨识 + PyBaMM 仿真 + 第三方辨识审计）。两者**有意保持为两个仓库**，
-分工、口径对照与「为什么不合并」见 [docs/sibling_projects.md](docs/sibling_projects.md)。
+[battery-lifetime-guide](https://github.com/ilo-love7/battery-lifetime-guide) reproduces the same Severson 2019 paper on the same public data (NASA PCoE + MIT-Stanford), in the form of a **learning guide with the crash scenes left in** (linear step1→6 scripts + FAQ + interview cards). This repository is a **self-consistent evidence chain** (ECM identification + PyBaMM simulation + third-party identification audit). The two are **deliberately kept separate**; the division of labour, the convention comparison and "why not merge" are in [docs/sibling_projects.md](docs/sibling_projects.md).
 
-> 两边的随机森林在 60 维口径下接近（8.12% vs 8.2%）；ElasticNet 的差距（8.33% vs 5.9%）已经受控实验分解：
-> l1_ratio 是否参与搜索只值 0.14 pp，主因是两条管线的 paper6 特征数值定义差异——详见 docs/results.md 2.2。
+> The two random forests are close under the 60-dimension convention (8.12% vs 8.2%); the ElasticNet gap (8.33% vs 5.9%) has been decomposed by controlled experiments: whether `l1_ratio` participates in the search is worth only 0.14 pp, and the main cause is a numerical definition difference in the two pipelines' paper6 features — see docs/results.md 2.2.
 
 ## License
 
-[MIT](LICENSE)　·　版本记录见 [CHANGELOG.md](CHANGELOG.md)　·　引用方式见 [CITATION.cff](CITATION.cff)（GitHub 页面右侧 "Cite this repository"）
+[MIT](LICENSE) · version history in [CHANGELOG.md](CHANGELOG.md) · citation in [CITATION.cff](CITATION.cff) (GitHub shows "Cite this repository" on the right)
