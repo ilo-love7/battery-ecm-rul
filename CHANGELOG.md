@@ -3,6 +3,39 @@
 本文件按 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 格式记录本项目的版本变动。
 详细的阶段推进、踩坑清单与关键决策见 [`docs/worklog.md`](docs/worklog.md)。
 
+## [1.1.0] - 2026-10-23
+
+把 ECM 拟合的**数值稳定性 / 初值敏感性 / 参数可辨识性**做成离线回归测试 + 已入库基线，让「参数漂移超阈值即失败」成为 CI 里的事实；同时补齐 Windows CI leg 与两处 README 板块。
+
+### Added
+
+- **`src/ecm/stability.py`（422 行，新增）**：ECM 拟合的离线诊断层（只用合成数据 + 仓内已提交产物，**不需要** NASA/MIT 原始数据集）。
+  - `classify_fit()` 把一次 `fit_rc` 结果分类：`ok` / `underdetermined`（样本数 ≤ 自由参数个数）/ `no-excitation`（I≡0 或 V 无变化）/ `bad-fit`（残差 RMS 超过量程 5%）/ `bound-hit` / `solver-failure`。存在的理由：求解器对**没有信息量**的输入仍会报 `status=1`（"gtol satisfied"）——空数组、零激励、n=5（恰好等于参数个数）实测都会「收敛」，这类静默成功必须被单独标出来，而不是当成拟合成功。
+  - `rel_drift()` 相对参数漂移、`branch_set()` / `branch_sets_allclose()` 无序列支路集合、`max_abs_voltage_diff()` 预测一致性、`solver_failure_reason()` 把「求解失败」与「非法输入」分成两类。
+  - 阈值依据写在常量注释里（不是随手拍）：`PARAM_REL_DRIFT_MAX = 1e-6`（合成拟合无噪声、求解器确定性，`xtol=ftol=gtol=1e-12`、double eps = 2.2e-16；1e-6 比 eps 高约 10 个数量级，留出 CI(Linux) 与本地 Windows 之间 scipy/BLAS 的差异余量，同时远低于对外参数的 4–5 位有效数字——1e-6 相对 = 1e-4 mΩ）；`PRED_MAX_ABS_V = 1e-9`（实测两解预测差约 1e-13 V）；`RESID_FRACTION_OF_SPAN_MAX = 0.05`（与项目自身「复测 RMSE ≤ 量程 2%」验收口径同源，此处放松到 5%，只用于区分「解释不了数据」与「正常拟合」，不用于评判精度）。
+- **`tests/test_ecm_stability.py`（233 行，25 个用例项）**：初值敏感性（7 组初值，含贴上下界、量级错、`τ1 > τ2` 的坏初值）、数值稳定性（畸形输入的报错语义、标量恒流、零激励、欠定、异常值、单位量级错）、可辨识性（合成真值恢复 + 支路置换对称）。**测试总数 9 → 34**。
+- **`tests/regression_baseline.json`（8137 B，已入库基线）**：测试**读取**基线并断言漂移在阈值内（比较逻辑 `compare_to_baseline()`）。同时把 `reports/phaseA2_ecm_results.csv` 的真实数据数字快照进来（NASA 4 颗：R0 105.05–107.58 mΩ、复测 RMSE 中位 **1.6052%** 原始 / **1.6289%** 标定后），使真实数据侧的漂移也能离线核对。
+- **`scripts/phase_h_ecm_stability.py`（21 行，新增）**：基线入口——直接跑即重新生成基线，`--check` 只比对、漂移超阈值退出码 1。**不触碰任何既有脚本的产物路径**（`reports/`、`figures/`、`data/processed/` 均未变）。
+- **CI 新增 `windows-latest` leg（`syntax & imports (windows)`）**：与既有 ubuntu job 同样步骤；既有 `check` job 的名字与内容一个字未动（不改既有 required check 的名字）。
+- README 新增 `## What you can do with this toolkit` / `## 用途 / 你能用它做什么`（用途-入口表 + 典型用途 + 可复现性），以及文件末尾 `## Related repositories` / `## 关联仓库`（7 仓库互链表）。
+
+### Changed
+
+- **`fit_rc()` 增加可选初值 `p0`**：默认仍取 `_params(order)`（`r0_fixed` 时取历史默认），**不传时行为与旧版逐位一致**；传入初值才使「初值敏感性」可测。
+- **`fit_rc()` 增加输入校验**（`_validate_1d()` / `_as_p0()`）：空数组 / NaN / inf / 长度不匹配 / 非 1-D / `order` 非 1|2 / `p0` 长度错 → 抛 `ValueError`，消息明确写 "invalid input, not a solver failure"，与「求解器未收敛」（`res.status <= 0`，由 `solver_failure_reason()` 翻译）分属两类。改之前同一批输入是静默垃圾：空数组返回初值 + `status=1`（"converged"）+ `rmse = nan`。
+
+### Fixed
+
+- **新增输入校验曾拒绝「标量恒流」，与既有用法冲突**：`tests/test_core.py` 的合成放电把 `i_mag` 写成标量（`CAP_AH * 3600.0 / 3600.0`，即常数 1C），第一版校验一律拒绝 0-D 输入，会把这种既有公开用法误判成畸形输入。现改为 `_validate_1d("i_mag", ..., broadcast_to=t.shape[0])`：**标量恒流按时间轴广播**为常数数组；`t` / `V_meas` / `soc` 仍不接受标量。回归用例 `test_scalar_constant_current_is_still_accepted` 守着这条。
+
+### 如实记录的边界（不做粉饰）
+
+- **`fit_rc` 的可辨识性边界**：2-RC 的参数**向量**只在「支路置换」意义下可辨识——`V = OCV − I[R0 + R1(1−e^(−t/τ1)) + R2(1−e^(−t/τ2))]` 对 `(R1,τ1) ↔ (R2,τ2)` 不变。实测从 `τ1 > τ2` 的初值出发会收敛到**置换后的标注** `[R0, R2_true, τ2_true, R1_true, τ1_true]`，残差 RMS **7.1e-17 V**，与真值解的 **5.9e-17 V** 同量级——两者在电压上完全不可区分。**单条恒流放电无法恢复带标签的 R1/R2 与 τ1/τ2**，能恢复的只有无序列 `{(R1,τ1),(R2,τ2)}`。这是模型结构决定的，不靠"给拟合加 τ1<τ2 约束"来假装解决。回归用例 `test_swapped_branch_order_is_a_permutation_not_a_wrong_answer` 固化这条对称性。
+- 基线记录的是**历史上各初值实际收敛到的标注**；任何标注变化（例如"修掉"上述对称性）都会让漂移门禁变红，必须作为一次有意识的决定连同基线一起复核，而不是静默通过。
+- 过程中如实记下的一处自伤：`truth_recovery` 的支路比较最初用浮点逐位 `==`，因末位 1e-16 差异把默认初值的成功恢复误判成 `False`，已改为容差比较 `branch_sets_allclose()`。
+
+---
+
 ## [Unreleased]
 
 ### 已知分歧与待办
@@ -97,4 +130,5 @@
 - Makefile 一键复现（`make all`），CI 做语法编译与 import 冒烟测试。
 - 交付：Word 项目总结报告（17 图 / 13 表）、离线 HTML 数据看板、交互式小工具。
 
+[1.1.0]: https://github.com/ilo-love7/battery-ecm-rul/releases/tag/v1.1.0
 [1.0.0]: https://github.com/ilo-love7/battery-ecm-rul/releases/tag/v1.0.0
