@@ -298,6 +298,28 @@ Not every cell in the three MIT-Stanford batches qualifies under the paper's con
 
 ---
 
+## What you can do with this toolkit
+
+Six concrete jobs, each with a runnable entry point (CPU only; the unit tests need no raw datasets):
+
+| Job | Entry point |
+|---|---|
+| **Identify Thevenin ECM parameters on NASA PCoE cells** — OCV(SOC), R0, R_dc(SOC), same-condition re-test RMSE | `python scripts/phase_a2_ecm.py` · `src/ecm/ecm.py` |
+| **Predict early cycle life from the first 100 cycles (MIT-Stanford)** — 60-dim / paper-6 feature conventions, five model families | `python scripts/phase_c_rul.py` · `src/rul/features.py`, `src/rul/models.py` |
+| **Run PyBaMM physical simulations** — DFN/SPM/Thevenin hierarchy, fast-charge protocols, degradation-mode attribution | `python scripts/phase_d1_pybamm_sim.py` · `python scripts/phase_d2_sim_rul.py` · `src/sim/runner.py` |
+| **Audit a third-party ECM identification chain (P3)** — using the P2 internal-resistance ground truth as the ruler | `python scripts/phase_e_p3_audit.py` · `python scripts/phase_f_bridge.py` |
+| **Build the unified dataset, or explore the results interactively** | `python scripts/phase_b_build_dataset.py all` · `streamlit run src/app/app.py` |
+| **Regenerate the deliverables** (Word report + offline HTML dashboard) | `python scripts/build_report_docx.py` · `python scripts/build_dashboard.py` |
+
+Typical uses: (1) a **reproduction baseline** for ECM identification and early-life prediction on public battery data;
+(2) a **ground-truth ruler** — the PyBaMM side gives a known internal resistance (38.6 mΩ) that any identification chain can be tested against;
+(3) an **audit template** for third-party identification results, showing which reported parameters survive a sensitivity check and which do not;
+(4) **teaching / onboarding material** for the distinction between *measurable* and *identifiable*, with the negative results kept in.
+
+Reproducibility: `python -m pytest tests/ -q` runs **9 tests** on synthetic data in about 2 s and needs **no raw datasets** — they pin ECM parameter recovery, the two ΔQ(V) conventions and the definitions of the reported metrics. The full pipeline is offline once the data is downloaded (NASA PCoE + MIT-Stanford, ~8.6 GB) following [`data/README.md`](data/README.md), and the PyBaMM steps additionally need `requirements-full.txt`. CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml), workflow `CI`) is a single **ubuntu-latest / Python 3.11** job: `compileall` over `src` + `scripts`, the 9 unit tests, and an import smoke test. Windows is not covered by CI, so run the test command locally there.
+
+---
+
 ## 6. Quick start
 
 ```bash

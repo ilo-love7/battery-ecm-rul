@@ -323,6 +323,33 @@ MIT-Stanford 三个 batch 里并不是每颗电池都能进论文口径。本项
 
 ---
 
+## 用途 / 你能用它做什么
+
+六件具体的事，每件都有可直接运行的入口（仅 CPU；单元测试不需要原始数据集）：
+
+| 用途 | 真实入口（脚本/模块路径） |
+|---|---|
+| **在 NASA PCoE 电池上辨识 Thevenin ECM 参数** —— OCV(SOC)、R0、R_dc(SOC)、同工况复测 RMSE | `python scripts/phase_a2_ecm.py` · `src/ecm/ecm.py` |
+| **用前 100 圈预测早期循环寿命（MIT-Stanford）** —— 60 维 / 论文 6 维两套口径、五类模型 | `python scripts/phase_c_rul.py` · `src/rul/features.py`、`src/rul/models.py` |
+| **跑 PyBaMM 物理仿真** —— DFN/SPM/Thevenin 谱系、快充协议、退化模式归因 | `python scripts/phase_d1_pybamm_sim.py` · `python scripts/phase_d2_sim_rul.py` · `src/sim/runner.py` |
+| **审计第三方 ECM 辨识链（P3）** —— 用 P2 给出的内阻真值当标尺 | `python scripts/phase_e_p3_audit.py` · `python scripts/phase_f_bridge.py` |
+| **构建统一数据集，或交互式查看结果** | `python scripts/phase_b_build_dataset.py all` · `streamlit run src/app/app.py` |
+| **重新生成交付物**（Word 报告 + 离线 HTML 看板） | `python scripts/build_report_docx.py` · `python scripts/build_dashboard.py` |
+
+典型用途（Typical uses）：(1) 公开电池数据上 ECM 辨识与早期寿命预测的**基线复现**；
+(2) **真值标尺** —— PyBaMM 一侧给出已知内阻（38.6 mΩ），任何辨识流程都可以拿它检验；
+(3) **审计模板** —— 判断第三方辨识报出的参数哪些能过敏感性检验、哪些不能；
+(4) **教学 / 上手材料** —— 讲清「能被测量 ≠ 能被辨识」的区别，并把负面结果原样保留。
+
+可复现性：`python -m pytest tests/ -q` 跑 **9 个测试**，全部用合成数据、约 2 秒跑完，**不需要原始数据集** ——
+它们守住 ECM 参数恢复、ΔQ(V) 两套口径、以及对外报告指标的定义。完整流水线在数据下载完成后完全离线
+（NASA PCoE + MIT-Stanford 约 8.6 GB，下载与放置方式见 [`data/README.md`](data/README.md)），
+PyBaMM 相关步骤另需 `requirements-full.txt`。CI（[`.github/workflows/ci.yml`](.github/workflows/ci.yml)，
+workflow `CI`）只有一个 **ubuntu-latest / Python 3.11** 的 job：对 `src` + `scripts` 跑 `compileall`、
+跑 9 个单元测试、再做一次 import 冒烟测试。Windows 不在 CI 覆盖范围内，本地请在 Windows 上自行跑一遍测试命令。
+
+---
+
 ## 六、快速开始
 
 ```bash
