@@ -345,8 +345,8 @@ MIT-Stanford 三个 batch 里并不是每颗电池都能进论文口径。本项
 它们守住 ECM 参数恢复（**无序列支路集合**口径 —— 单条恒流放电无法辨识 (R1, τ1) ↔ (R2, τ2) 的标签）、ΔQ(V) 两套口径、对外报告指标的定义，以及 [`tests/regression_baseline.json`](tests/regression_baseline.json) 的漂移阈值。完整流水线在数据下载完成后完全离线
 （NASA PCoE + MIT-Stanford 约 8.6 GB，下载与放置方式见 [`data/README.md`](data/README.md)），
 PyBaMM 相关步骤另需 `requirements-full.txt`。CI（[`.github/workflows/ci.yml`](.github/workflows/ci.yml)，
-workflow `CI`）只有一个 **ubuntu-latest / Python 3.11** 的 job：对 `src` + `scripts` 跑 `compileall`、
-跑 34 个单元测试、再做一次 import 冒烟测试。Windows 不在 CI 覆盖范围内，本地请在 Windows 上自行跑一遍测试命令。
+workflow `CI`）在 **`ubuntu-latest` 与 `windows-latest`** 上各跑一个 job（Python 3.11）：对 `src` + `scripts` 跑 `compileall`、
+跑 34 个单元测试、再做一次 import 冒烟测试。两端跑的是同一套离线命令。
 
 ---
 

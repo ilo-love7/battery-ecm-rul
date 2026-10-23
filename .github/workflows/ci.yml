@@ -37,3 +37,37 @@ jobs:
           from src.ecm import ecm;
           from src.rul import features, models;
           print('imports OK')"
+
+  # Windows leg：新增 job，上面的 `check` job（名字与内容）一个字未动，
+  # 免得改动既有 required check 的名字。所有 step 都是纯 python/pip 调用，
+  # 没有 POSIX-only 的 shell 构造，直接用 windows-latest 默认 shell（pwsh）即可。
+  check-windows:
+    name: syntax & imports (windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Compile all sources
+        run: python -m compileall -q src scripts
+
+      - name: Unit tests (synthetic data, no raw dataset required)
+        run: python -m pytest tests/ -q --no-header
+
+      - name: Import smoke test
+        run: >-
+          python -c "from src.parsers import nasa, mit;
+          from src.features.dq import dq_curve, dq_stats;
+          from src.ecm import ecm;
+          from src.rul import features, models;
+          print('imports OK')"
