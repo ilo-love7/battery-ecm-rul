@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "generated_by": "scripts/phase_h_ecm_stability.py",
+  "problem": {
+    "kind": "synthetic noiseless Thevenin discharge",
+    "order": 2,
+    "n_samples": 4000,
+    "current_A": 1.1,
+    "soc_span": [
+      0.0,
+      1.0
+    ],
+    "true_params": [
+      0.03,
+      0.02,
+      30.0,
+      0.01,
+      300.0
+    ],
+    "param_names": [
+      "R0",
+      "R1",
+      "tau1",
+      "R2",
+      "tau2"
+    ]
+  },
+  "tolerances": {
+    "param_rel_drift_max": 1e-06,
+    "pred_max_abs_v": 1e-09,
+    "recovery_rtol": 0.001,
+    "recovery_atol": 1e-05,
+    "resid_fraction_of_span_max": 0.05
+  },
+  "reference_guess": "default",
+  "fits": {
+    "default": {
+      "initial_guess": [
+        0.05,
+        0.05,
+        30.0,
+        0.05,
+        300.0
+      ],
+      "x": [
+        0.03000000000000004,
+        0.019999999999999987,
+        30.000000000000025,
+        0.00999999999999998,
+        300.0000000000005
+      ],
+      "branch_set": [
+        [
+          0.00999999999999998,
+          300.0000000000005
+        ],
+        [
+          0.019999999999999987,
+          30.000000000000025
+        ]
+      ],
+      "status": 1,
+      "nfev": 30,
+      "residual_rms_V": 5.916561726981507e-17,
+      "bound_hits": [],
+      "categories": [
+        "ok"
+      ],
+      "param_rel_drift_vs_reference": 0.0,
+      "pred_max_abs_v_vs_reference": 0.0
+    },
+    "r0_at_upper_bound": {
+      "initial_guess": [
+        1.0,
+        0.5,
+        30.0,
+        0.5,
+        300.0
+      ],
+      "x": [
+        0.03000000000000109,
+        0.019999999999998866,
+        30.000000000001435,
+        0.01000000000000004,
+        299.999999999997
+      ],
+      "branch_set": [
+        [
+          0.01000000000000004,
+          299.999999999997
+        ],
+        [
+          0.019999999999998866,
+          30.000000000001435
+        ]
+      ],
+      "status": 1,
+      "nfev": 46,
+      "residual_rms_V": 9.954931000182253e-17,
+      "bound_hits": [],
+      "categories": [
+        "ok"
+      ],
+      "param_rel_drift_vs_reference": 5.603156827405091e-14,
+      "pred_max_abs_v_vs_reference": 1.3322676295501878e-15
+    },
+    "tiny_resistances": {
+      "initial_guess": [
+        1e-08,
+        1e-08,
+        1.0,
+        1e-08,
+        5.0
+      ],
+      "x": [
+        0.03000000000000275,
+        0.019999999999998252,
+        30.000000000005862,
+        0.009999999999999027,
+        300.0000000000321
+      ],
+      "branch_set": [
+        [
+          0.009999999999999027,
+          300.0000000000321
+        ],
+        [
+          0.019999999999998252,
+          30.000000000005862
+        ]
+      ],
+      "status": 1,
+      "nfev": 11,
+      "residual_rms_V": 1.9293619143415394e-16,
+      "bound_hits": [],
+      "categories": [
+        "ok"
+      ],
+      "param_rel_drift_vs_reference": 1.9457028580897395e-13,
+      "pred_max_abs_v_vs_reference": 3.1086244689504383e-15
+    },
+    "tau1_at_lower_bound": {
+      "initial_guess": [
+        0.05,
+        0.05,
+        1.0,
+        0.05,
+        1000.0
+      ],
+      "x": [
+        0.030000000000000006,
+        0.01999999999999998,
+        29.999999999999666,
+        0.010000000000000021,
+        300.00000000000114
+      ],
+      "branch_set": [
+        [
+          0.010000000000000021,
+          300.00000000000114
+        ],
+        [
+          0.01999999999999998,
+          29.999999999999666
+        ]
+      ],
+      "status": 1,
+      "nfev": 32,
+      "residual_rms_V": 5.3012422835122853e-17,
+      "bound_hits": [],
+      "categories": [
+        "ok"
+      ],
+      "param_rel_drift_vs_reference": 1.1960802718628344e-14,
+      "pred_max_abs_v_vs_reference": 4.440892098500626e-16
+    },
+    "tau2_at_upper_bound": {
+      "initial_guess": [
+        0.05,
+        0.05,
+        30.0,
+        0.05,
+        100000.0
+      ],
+      "x": [
+        0.02999999999999996,
+        0.020000000000000056,
+        29.9999999999999,
+        0.009999999999999986,
+        300.0000000000008
+      ],
+      "branch_set": [
+        [
+          0.009999999999999986,
+          300.0000000000008
+        ],
+        [
+          0.020000000000000056,
+          29.9999999999999
+        ]
+      ],
+      "status": 1,
+      "nfev": 32,
+      "residual_rms_V": 4.3850295967943205e-17,
+      "bound_hits": [],
+      "categories": [
+        "ok"
+      ],
+      "param_rel_drift_vs_reference": 4.1448326252672474e-15,
+      "pred_max_abs_v_vs_reference": 4.440892098500626e-16
+    },
+    "large_all": {
+      "initial_guess": [
+        0.9,
+        0.5,
+        5.0,
+        0.5,
+        10.0
+      ],
+      "x": [
+        0.030000000000000002,
+        0.01999999999999998,
+        29.99999999999977,
+        0.010000000000000021,
+        299.99999999999903
+      ],
+      "branch_set": [
+        [
+          0.010000000000000021,
+          299.99999999999903
+        ],
+        [
+          0.01999999999999998,
+          29.99999999999977
+        ]
+      ],
+      "status": 1,
+      "nfev": 32,
+      "residual_rms_V": 5.01447318807467e-17,
+      "bound_hits": [],
+      "categories": [
+        "ok"
+      ],
+      "param_rel_drift_vs_reference": 8.526512829121196e-15,
+      "pred_max_abs_v_vs_reference": 4.440892098500626e-16
+    },
+    "swapped_branch_order": {
+      "initial_guess": [
+        0.05,
+        0.01,
+        300.0,
+        0.02,
+        30.0
+      ],
+      "x": [
+        0.030000000000000016,
+        0.01,
+        299.9999999999991,
+        0.01999999999999999,
+        29.999999999999996
+      ],
+      "branch_set": [
+        [
+          0.01,
+          299.9999999999991
+        ],
+        [
+          0.01999999999999999,
+          29.999999999999996
+        ]
+      ],
+      "status": 1,
+      "nfev": 10,
+      "residual_rms_V": 7.126213635136308e-17,
+      "bound_hits": [],
+      "categories": [
+        "ok"
+      ],
+      "param_rel_drift_vs_reference": 8.999999999999963,
+      "pred_max_abs_v_vs_reference": 4.440892098500626e-16
+    }
+  },
+  "truth_recovery": {
+    "default": {
+      "param_rel_drift_vs_truth": 2.0816681711721685e-15,
+      "branch_set_matches_truth": true
+    },
+    "r0_at_upper_bound": {
+      "param_rel_drift_vs_truth": 5.672545766444159e-14,
+      "branch_set_matches_truth": true
+    },
+    "tiny_resistances": {
+      "param_rel_drift_vs_truth": 1.9539925233402755e-13,
+      "branch_set_matches_truth": true
+    },
+    "tau1_at_lower_bound": {
+      "param_rel_drift_vs_truth": 1.1131836193574903e-14,
+      "branch_set_matches_truth": true
+    },
+    "tau2_at_upper_bound": {
+      "param_rel_drift_vs_truth": 3.315866100213801e-15,
+      "branch_set_matches_truth": true
+    },
+    "large_all": {
+      "param_rel_drift_vs_truth": 7.697546304067751e-15,
+      "branch_set_matches_truth": true
+    },
+    "swapped_branch_order": {
+      "param_rel_drift_vs_truth": 8.99999999999997,
+      "branch_set_matches_truth": true
+    }
+  },
+  "real_data_artifact": {
+    "source": "reports/phaseA2_ecm_results.csv",
+    "available": true,
+    "cells": {
+      "B0005": {
+        "R0_step_mohm": 107.34597416908029,
+        "Rdc50_mohm": 128.495452042437,
+        "Rpol50_mohm": 21.14947787335672,
+        "rmse_test_raw_pct": 1.7168731582456158,
+        "rmse_test_cal_pct": 1.7694327703216157
+      },
+      "B0006": {
+        "R0_step_mohm": 105.91605443812401,
+        "Rdc50_mohm": 130.45435971618562,
+        "Rpol50_mohm": 24.538305278061625,
+        "rmse_test_raw_pct": 0.9611247635787039,
+        "rmse_test_cal_pct": 0.951185940550235
+      },
+      "B0007": {
+        "R0_step_mohm": 107.58058483695473,
+        "Rdc50_mohm": 128.26494905104417,
+        "Rpol50_mohm": 20.684364214089438,
+        "rmse_test_raw_pct": 3.2900132695507867,
+        "rmse_test_cal_pct": 3.2987164374597566
+      },
+      "B0018": {
+        "R0_step_mohm": 105.0472492048723,
+        "Rdc50_mohm": 135.6808692414997,
+        "Rpol50_mohm": 30.633620036627395,
+        "rmse_test_raw_pct": 1.493557910388879,
+        "rmse_test_cal_pct": 1.4884394816742057
+      }
+    },
+    "median_rmse_test_raw_pct": 1.6052155343172474,
+    "median_rmse_test_cal_pct": 1.6289361259979107,
+    "acceptance_pct_of_range": 2.0
+  }
+}
